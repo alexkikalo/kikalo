@@ -1,0 +1,32 @@
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+import cadquery as cq
+from pathlib import Path
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return {"message": "Sheet metal generator live!"}
+
+@app.get("/bracket")
+def get_bracket(
+    length: float = 100.0,
+    width: float = 50.0,
+    thickness: float = 3.0,
+    bend_radius: float = 3.0
+):
+    # Simple L-bracket with perfect flat pattern
+    plate = (cq.Workplane("XY")
+             .box(length, width, thickness)
+             .faces(">Z").workplane()
+             .center(-length/2 + bend_radius + thickness)
+             .box(thickness*3, width, length/2, centered=(True,True,False))
+    )
+
+    # Export
+    Path("downloads").mkdir(exist_ok=True)
+    cq.exporters.export(plate, "downloads/bracket.step")
+    cq.exporters.export(plate.val().section(), "downloads/bracket.dxf")  # flat pattern
+
+    return FileResponse("downloads/bracket.dxf", filename="L-bracket.dxf")
