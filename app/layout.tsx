@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import './globals.css' // optional – you can delete this line if you want
+import './globals.css'  // optional – you can delete this line if you want
 
 export const metadata: Metadata = {
   title: 'Kikalo Designs – Instant Sheet Metal DXF',
