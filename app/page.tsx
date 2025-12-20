@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 
-const stripePromise = loadStripe(pk_live_51PqnnaLBTzItuMFqk9L8S9VC4ik2CAGTDPgRlbeJORudC6AsE0XaV2jfFJ1J65ruJpEjp0JNvtkqIrP9cwCLuwnj00NwqWUCzL) // Replace with real key from Stripe dashboard
+const stripePromise = loadStripe('pk_live_51PqnnaLBTzItuMFqk9L8S9VC4ik2CAGTDPgRlbeJORudC6AsE0XaV2jfFJ1J65ruJpEjp0JNvtkqIrP9cwCLuwnj00NwqWUCzL') // Replace with real key from Stripe dashboard
 
 export default function Home() {
   const [length, setLength] = useState(100)
