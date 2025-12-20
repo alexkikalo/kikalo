@@ -43,9 +43,9 @@ export default function Home() {
       <p>Customize & download DXF for laser cutting ($3.90)</p>
       
       <div style={{ margin: '1rem 0' }}>
-        <label>Length (mm): <input type="number" value={length} onChange={e => setLength(e.target.value)} /></label><br/>
-        <label>Width (mm): <input type="number" value={width} onChange={e => setWidth(e.target.value)} /></label><br/>
-        <label>Thickness (mm): <input type="number" value={thickness} onChange={e => setThickness(e.target.value)} /></label>
+        <label>Length (mm): <input type="number" value={length} onChange={e => setLength(Number(e.target.value) || 0)} /></label><br/>
+        <label>Width (mm): <input type="number" value={width} onChange={e => setWidth(Number(e.target.value) || 0)} /></label><br/>
+        <label>Thickness (mm): <input type="number" value={thickness} onChange={e => setThickness(Number(e.target.value) || 0)} /></label>
       </div>
 
       <button onClick={payAndGenerate} style={{ background: '#635BFF', color: 'white', padding: '1rem', border: 'none' }}>
