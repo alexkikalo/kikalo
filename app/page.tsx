@@ -5,9 +5,9 @@ import { loadStripe } from '@stripe/stripe-js'
 const stripePromise = loadStripe('pk_live_51PqnnaLBTzItuMFqk9L8S9VC4ik2CAGTDPgRlbeJORudC6AsE0XaV2jfFJ1J65ruJpEjp0JNvtkqIrP9cwCLuwnj00NwqWUCzL') // Replace with real key from Stripe dashboard
 
 export default function Home() {
-  const [length, setLength] = useState<number | string>(100)
-  const [width, setWidth] = useState<number | string>(50)
-  const [thickness, setThickness] = useState<number | string>(3)
+  const [length, setLength] = useState(100)
+  const [width, setWidth] = useState(50)
+  const [thickness, setThickness] = useState(3)
   const [loading, setLoading] = useState(false)
 
   const generate = async () => {
