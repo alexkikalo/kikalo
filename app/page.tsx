@@ -8,11 +8,19 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-gray-900 text-white py-4">
-        <div className="max-w-5xl mx-auto px-6">
+      <header className="bg-gray-900 text-white py-4 shadow-md fixed w-full top-0 z-10">
+        <div className="max-w-5xl mx-auto px-6 flex justify-between items-center">
           <h1 className="text-2xl font-bold">L-Bracket Generator</h1>
+          <nav className="space-x-6">
+            <a href="#" className="hover:text-blue-400">Home</a>
+            <a href="#" className="hover:text-blue-400">Pricing</a>
+            <a href="#" className="hover:text-blue-400">Contact</a>
+          </nav>
         </div>
       </header>
+
+      {/* Spacer for fixed header */}
+      <div className="h-16" />
 
       {/* Main content */}
       <main className="flex-grow flex items-center justify-center">
