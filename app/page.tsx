@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 
@@ -40,68 +39,88 @@ export default function Home() {
   }
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header style={{ background: '#111', color: '#fff', padding: '1rem 2rem', textAlign: 'center' }}>
-        <h1 style={{ margin: 0 }}>Sheet Metal L-Bracket Generator</h1>
+      <header className="bg-gray-900 text-white py-4 shadow-md">
+        <div className="max-w-6xl mx-auto px-6 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">L-Bracket Generator</h1>
+          <nav>
+            <ul className="flex space-x-6">
+              <li><a href="#" className="hover:text-blue-400">Home</a></li>
+              <li><a href="#" className="hover:text-blue-400">About</a></li>
+              <li><a href="#" className="hover:text-blue-400">Contact</a></li>
+            </ul>
+          </nav>
+        </div>
       </header>
 
-      {/* Hero Banner */}
-      <section style={{ background: '#635BFF', color: '#fff', padding: '4rem 2rem', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2.5rem', margin: '0 0 1rem' }}>Custom L-Bracket DXF in Seconds</h2>
-        <p style={{ fontSize: '1.2rem', margin: '0 0 2rem' }}>
-          Enter dimensions, pay $3.90 once, and download your ready-to-cut DXF file.
-        </p>
-        <div style={{ maxWidth: '400px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-              Length (mm):
-              <input
-                type="number"
-                value={length}
-                onChange={(e) => setLength(Number(e.target.value) || 0)}
-                style={{ width: '100%', padding: '0.5rem' }}
-              />
-            </label>
-            <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-              Width (mm):
-              <input
-                type="number"
-                value={width}
-                onChange={(e) => setWidth(Number(e.target.value) || 0)}
-                style={{ width: '100%', padding: '0.5rem' }}
-              />
-            </label>
-            <label style={{ display: 'block', marginBottom: '1rem' }}>
-              Thickness (mm):
-              <input
-                type="number"
-                value={thickness}
-                onChange={(e) => setThickness(Number(e.target.value) || 0)}
-                style={{ width: '100%', padding: '0.5rem' }}
-              />
-            </label>
-          </div>
-          <button
-            onClick={payAndGenerate}
-            disabled={loading}
-            style={{
-              background: '#fff',
-              color: '#635BFF',
-              padding: '1rem 2rem',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-            }}
-          >
-            Pay $3.90 & Download DXF
-          </button>
-          {loading && <p style={{ marginTop: '1rem' }}>Generating...</p>}
-        </div>
-        <p style={{ marginTop: '2rem', fontSize: '0.9rem' }}>
-          <small>Preview: Simple flat plate (bends coming soon)</small>
-        </p>
-      </section>
+      {/* Main content - Hero */}
+      <main className="flex-grow">
+        <section className="bg-indigo-600 text-white py-16 text-center">
+          <div className="max-w-4xl mx-auto px-6">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Custom L-Bracket DXF in Seconds
+            </h2>
+            <p className="text-xl mb-10">
+              Enter dimensions, pay $3.90 once, and download your ready-to-cut DXF file.
+            </p>
 
+            <div className="max-w-md mx-auto bg-white text-gray-800 p-8 rounded-lg shadow-lg">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Length (mm)</label>
+                  <input
+                    type="number"
+                    value={length}
+                    onChange={(e) => setLength(Number(e.target.value) || 0)}
+                    className="w-full p-3 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Width (mm)</label>
+                  <input
+                    type="number"
+                    value={width}
+                    onChange={(e) => setWidth(Number(e.target.value) || 0)}
+                    className="w-full p-3 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Thickness (mm)</label>
+                  <input
+                    type="number"
+                    value={thickness}
+                    onChange={(e) => setThickness(Number(e.target.value) || 0)}
+                    className="w-full p-3 border rounded"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={payAndGenerate}
+                disabled={loading}
+                className="mt-8 w-full bg-white text-indigo-600 py-4 rounded font-bold text-lg hover:bg-gray-100 disabled:opacity-50"
+              >
+                Pay $3.90 & Download DXF
+              </button>
+
+              {loading && <p className="mt-4 text-gray-200">Generating...</p>}
+            </div>
+
+            <p className="mt-8 text-sm opacity-80">
+              Preview: Simple flat plate (bends coming soon)
+            </p>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-400 py-8">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <p className="text-sm">
+            &copy; {new Date().getFullYear()} Sheet Metal Tools. All rights reserved.
+          </p>
+          <p className="mt-2 text-xs">
+            Powered by Next.js • Secure payments via Stripe
+          </p>
+        </div>
