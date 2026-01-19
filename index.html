@@ -3,62 +3,202 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fix-A-Home - Professional Home Repairs</title>
-  <link rel="stylesheet" href="/assets/css/main.css"/>
+  <title>Your Name | Portfolio</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f0f1a;
+      color: #e0e0ff;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      transition: all 0.4s ease;
+      padding: 1.5rem 5%;
+      background: rgba(15, 15, 26, 0);
+      backdrop-filter: blur(0px);
+    }
+
+    header.scrolled {
+      background: rgba(15, 15, 26, 0.85);
+      backdrop-filter: blur(12px);
+      padding: 1rem 5%;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.4);
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(90deg, #a78bfa, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: #d1d1ff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover {
+      color: #c4b5fd;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      height: 100vh;
+      min-height: 680px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 900px;
+      padding: 0 2rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(3.2rem, 8vw, 7.5rem);
+      font-weight: 900;
+      letter-spacing: -3px;
+      line-height: 0.92;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(90deg, #c4b5fd, #a78bfa, #7c3aed, #c4b5fd);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shine 6s linear infinite;
+    }
+
+    .hero p {
+      font-size: 1.4rem;
+      max-width: 580px;
+      margin: 0 auto 2.5rem;
+      color: #b0b0ff;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.9rem 2.4rem;
+      background: #7c3aed;
+      color: white;
+      text-decoration: none;
+      border-radius: 50px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(124, 58, 237, 0.45);
+      background: #9f7aea;
+    }
+
+    /* Background animation */
+    .floating-bg {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .blob {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: rgba(124, 58, 237, 0.12);
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: float 25s infinite ease-in-out;
+    }
+
+    .blob:nth-child(2) { animation-delay: -8s; background: rgba(167, 139, 250, 0.1); }
+    .blob:nth-child(3) { animation-delay: -16s; background: rgba(192, 132, 252, 0.08); }
+
+    @keyframes float {
+      0%,100% { transform: translate(-20%, 10%) scale(1); }
+      50%     { transform: translate(30%, -30%) scale(1.15); }
+    }
+
+    @keyframes shine {
+      to { background-position: 200% center; }
+    }
+
+    /* Scroll margin for sections */
+    section {
+      scroll-margin-top: 6rem;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <header>
-    <nav>
-      <img src="/assets/img/FixAHomeLogo250px2026.png" alt="Fix-A-Home Logo" class="site-logo">
-      <ul>
-        <!--<li><a href="/index.html">Home</a></li>
-        <li><a href="/about.html">About</a></li>
-        <li><a href="/services.html">Services</a></li>
-        <li><a href="/contact.html">Contact</a></li>-->
-      </ul>
-    </nav>
-  </header>
+<header id="header">
+  <nav>
+    <div class="logo">Alex</div>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+</header>
 
-  <!-- Hero Banner -->
-  <section class="hero">
-    <div class="hero-content">
-      <h1>Reliable Home Repair Solutions</h1>
-      <p>Fast, affordable fixes for your home in and around the Wise County area.</p>
-      <a href="/contact.html" class="btn">Get a Free Estimate Today</a>
-    </div>
-  </section>
+<section class="hero" id="home">
+  <div class="floating-bg">
+    <div class="blob" style="top:-15%; left:-10%;"></div>
+    <div class="blob" style="bottom:-20%; right:-15%;"></div>
+    <div class="blob" style="top:40%; right:5%;"></div>
+  </div>
 
-  <!-- One Main Section -->
-  <section class="services-overview">
-    <h2>Our Expert Services</h2>
-    <p>We handle plumbing, electrical, carpentry, painting, and more. Quality work guaranteed.</p>
-    <div class="service-grid">
-      <div class="service-item">
-        <img src="/assets/img/plumbing-repair.jpg" alt="Plumbing repair"/>
-        <h3>Plumbing</h3>
-      </div>
-      <div class="service-item">
-        <img src="/assets/img/kitchen-fix.jpg" alt="Kitchen fix"/>
-        <h3>Kitchen & Bath</h3>
-      </div>
-      <div class="service-item">
-        <img src="/assets/img/electrical.jpg" alt="Electrical work"/>
-        <h3>Electrical</h3>
-      </div>
-    </div>
-  </section>
+  <div class="hero-content">
+    <h1>Creative Developer</h1>
+    <p>Building beautiful, fast and meaningful digital experiences</p>
+    <a href="#projects" class="btn">See My Work →</a>
+  </div>
+</section>
 
-  <!-- Contact Footer -->
-  <footer>
-    <div class="footer-content">
-      <p>Contact us today for a free estimate!</p>
-      <p>Phone: (940) 371-9443 | Email: fixahome@yahoo.com</p>
-      <p>Serving Wise County, Texas and surrounding areas</p>
-      <p>&copy; 2026 Fix-A-Home Handyman Services LLC. All rights reserved.</p>
-    </div>
-  </footer>
+<!-- Add more sections here -->
 
+<script>
+  // Header scroll effect
+  window.addEventListener('scroll', () => {
+    const header = document.getElementById('header');
+    header.classList.toggle('scrolled', window.scrollY > 80);
+  });
+</script>
 </body>
 </html>
