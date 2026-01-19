@@ -7,48 +7,51 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="bg-gray-900 text-white py-4 shadow-md fixed w-full top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 flex justify-between items-center">
+      {/* Header - fixed on scroll */}
+      <header className="bg-gray-900 text-white py-4 shadow-md fixed w-full top-0 z-50 transition-all duration-300">
+        <div className="max-w-6xl mx-auto px-6 flex justify-between items-center">
           <h1 className="text-2xl font-bold">L-Bracket Generator</h1>
-          <nav className="space-x-6">
-            <a href="#" className="hover:text-blue-400">Home</a>
-            <a href="#" className="hover:text-blue-400">Pricing</a>
-            <a href="#" className="hover:text-blue-400">Contact</a>
+          <nav className="space-x-8">
+            <a href="#" className="hover:text-indigo-400">Home</a>
+            <a href="#" className="hover:text-indigo-400">Features</a>
+            <a href="#" className="hover:text-indigo-400">Contact</a>
           </nav>
         </div>
       </header>
 
-      {/* Spacer for fixed header */}
-      <div className="h-16" />
+      {/* Spacer */}
+      <div className="h-20" />
 
-      {/* Main content */}
-      <main className="flex-grow flex items-center justify-center">
-        <div className="text-center px-6">
-          <h2 className="text-4xl font-bold mb-6 text-gray-800">
-            Custom L-Bracket DXF
+      {/* Hero Banner */}
+      <section className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white py-32 text-center">
+        <div className="max-w-5xl mx-auto px-6">
+          <h2 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight">
+            Custom L-Bracket DXF in Seconds
           </h2>
-          <p className="text-xl text-gray-600 mb-8 max-w-xl mx-auto">
-            Enter dimensions • Pay once • Download DXF instantly
+          <p className="text-xl md:text-2xl mb-10 max-w-3xl mx-auto opacity-90">
+            Enter dimensions, pay once, download ready-to-cut file instantly.
           </p>
-
-          <div className="inline-block bg-white p-8 rounded-lg shadow-lg">
-            <p className="text-2xl font-semibold mb-4">
-              Count: {count}
-            </p>
-            <button
-              onClick={() => setCount(c => c + 1)}
-              className="bg-indigo-600 text-white px-6 py-3 rounded hover:bg-indigo-700"
-            >
-              Increment
-            </button>
+          <div className="inline-block bg-white text-gray-900 px-10 py-6 rounded-xl shadow-2xl text-lg font-semibold">
+            Get Started – $3.90
           </div>
+        </div>
+      </section>
+
+      {/* Test content (remove later) */}
+      <main className="flex-grow flex items-center justify-center py-20">
+        <div className="text-center">
+          <p className="text-3xl mb-6">Count: {count}</p>
+          <button
+            onClick={() => setCount(c => c + 1)}
+            className="bg-indigo-600 text-white px-8 py-4 rounded-lg text-xl hover:bg-indigo-700"
+          >
+            Increment
+          </button>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-6 text-center">
-        <p>© {new Date().getFullYear()} Sheet Metal Tools</p>
+      <footer className="bg-gray-900 text-gray-400 py-8 text-center">
+        <p>© {new Date().getFullYear()} Kikalo Designs</p>
       </footer>
     </div>
   )
