@@ -1,62 +1,84 @@
 // script.js
 
-// Get elements
 const lengthInput = document.getElementById('length');
 const widthInput = document.getElementById('width');
 const thicknessInput = document.getElementById('thickness');
 const previewImg = document.getElementById('preview-img');
 const generateBtn = document.getElementById('generate');
 
-// Optional: array of preview images based on thickness (expand as needed)
-const previewImages = {
-  1: 'images/thin-lbracket.jpg',
-  3: 'images/medium-lbracket.jpg',
-  5: 'images/thick-lbracket.jpg'
-  // Add more
-};
+// Default preview
+const defaultPreview = 'images/default-lbracket.jpg';
+previewImg.src = defaultPreview;
 
-// Update preview when inputs change
 function updatePreview() {
-  const thickness = parseInt(thicknessInput.value) || 3;
-  
-  // Change image based on thickness (simple example)
-  if (previewImages[thickness]) {
-    previewImg.src = previewImages[thickness];
-  } else {
-    previewImg.src = 'images/default-lbracket.jpg';
-  }
+  const l = parseFloat(lengthInput.value) || 100;
+  const w = parseFloat(widthInput.value) || 50;
+  const t = parseFloat(thicknessInput.value) || 3;
 
-  // Optional: display current dimensions
-  console.log(`Dimensions: ${lengthInput.value} x ${widthInput.value} x ${thickness} mm`);
+  // Simple thickness-based image swap (add more images as needed)
+  if (t <= 2) previewImg.src = 'images/thin-lbracket.jpg' || defaultPreview;
+  else if (t <= 5) previewImg.src = 'images/medium-lbracket.jpg' || defaultPreview;
+  else previewImg.src = 'images/thick-lbracket.jpg' || defaultPreview;
+
+  // Optional: add text overlay (requires canvas for real overlay, here just console)
+  console.log(`Preview updated: ${l} × ${w} × ${t} mm`);
 }
 
-// Attach event listeners
+function validateInputs() {
+  const l = parseFloat(lengthInput.value);
+  const w = parseFloat(widthInput.value);
+  const t = parseFloat(thicknessInput.value);
+
+  if (!l || l < 50 || l > 1000) return 'Length must be 50–1000 mm';
+  if (!w || w < 30 || w > 500) return 'Width must be 30–500 mm';
+  if (!t || t < 1 || t > 10) return 'Thickness must be 1–10 mm';
+  return null;
+}
+
+// Input listeners
 [lengthInput, widthInput, thicknessInput].forEach(input => {
   input.addEventListener('input', updatePreview);
 });
 
-// Generate & pay button
-generateBtn.addEventListener('click', () => {
-  const length = lengthInput.value;
-  const width = widthInput.value;
-  const thickness = thicknessInput.value;
-
-  if (!length || !width || !thickness) {
-    alert('Please fill all dimensions');
+// Generate button
+generateBtn.addEventListener('click', async () => {
+  const error = validateInputs();
+  if (error) {
+    alert(error);
     return;
   }
 
-  // Example: redirect to payment with params (or call your API)
-  const params = new URLSearchParams({
-    length: length,
-    width: width,
-    thickness: thickness
-  });
+  generateBtn.disabled = true;
+  generateBtn.textContent = 'Processing...';
 
-  // Replace with your real payment URL or Stripe redirect
-  window.location.href = `https://your-payment-page.com?${params.toString()}`;
-  // Or fetch('/api/generate', { method: 'POST', body: JSON.stringify({length, width, thickness}) })
+  const l = lengthInput.value;
+  const w = widthInput.value;
+  const t = thicknessInput.value;
+
+  try {
+    // Option A: redirect to payment with params
+    const params = new URLSearchParams({ length: l, width: w, thickness: t });
+    window.location.href = `https://your-stripe-checkout-link.com?${params}`;
+
+    // Option B: call your backend API (uncomment if using API)
+    /*
+    const res = await fetch(`/api/generate?length=${l}&width=${w}&thickness=${t}`);
+    if (!res.ok) throw new Error('Generation failed');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `L-Bracket_${l}x${w}x${t}.dxf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    */
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'Generate DXF & Pay $3.90';
+  }
 });
 
-// Initial update
+// Initial preview
 updatePreview();
