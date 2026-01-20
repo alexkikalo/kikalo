@@ -1,64 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kikalo - Enabling American Design</title>
-  <link rel="stylesheet" href="/assets/css/main.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kikalo</title>
+  <link rel="stylesheet" href="/styles.css">  <!-- your CSS file -->
+  <!-- Optional: favicon, meta description, etc. -->
 </head>
 <body>
 
-  <!-- Header -->
   <header>
+    
+    <h1>Kikalo</h1>
     <nav>
-      <img src="/assets/img/Color.png" alt="Kikalo Logo" class="site-logo">
+      <img src="/assests/img/Color.png" alt="Kikalo Logo" style="height: 50px; vertical-align: middle;">
       <ul>
-        <!--<li><a href="/index.html">Home</a></li>
+        <li><a href="/index.html">Home</a></li>
         <li><a href="/about.html">About</a></li>
         <li><a href="/services.html">Services</a></li>
-        <li><a href="/contact.html">Contact</a></li>-->
+        <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
   </header>
 
-  <!-- Hero Banner -->
-  <section class="hero">
-    <div class="hero-content">
-      <h1>Reliable Home Repair Solutions</h1>
-      <p>Fast, affordable fixes for your home in and around the Wise County area.</p>
-      <a href="/contact.html" class="btn">Get a Free Estimate Today</a>
-    </div>
-  </section>
+  <main>
+    <section class="configurator">
+      <div class="preview">
+        <!-- Product preview image or canvas here -->
+        <img id="preview-img" src="/assets/img/default-lbracket.jpg" alt="L-Bracket Preview">
+        <!-- Or use <canvas> for dynamic 2D/3D preview -->
+      </div>
 
-  <!-- One Main Section -->
-  <section class="services-overview">
-    <h2>Our Expert Services</h2>
-    <p>We handle plumbing, electrical, carpentry, painting, and more. Quality work guaranteed.</p>
-    <div class="service-grid">
-      <div class="service-item">
-        <img src="/assets/img/plumbing-repair.jpg" alt="Plumbing repair"/>
-        <h3>Plumbing</h3>
+      <div class="controls">
+        <h2>Customize Your Bracket</h2>
+        
+        <label>Length (mm):
+          <input type="number" id="length" min="50" value="100">
+        </label>
+        
+        <label>Width (mm):
+          <input type="number" id="width" min="30" value="50">
+        </label>
+        
+        <label>Thickness (mm):
+          <input type="number" id="thickness" min="1" max="10" value="3">
+        </label>
+        
+        <!-- Add more options: material, bend radius, holes, etc. -->
+        
+        <button id="generate">Generate DXF & Pay $3.90</button>
       </div>
-      <div class="service-item">
-        <img src="/assets/img/kitchen-fix.jpg" alt="Kitchen fix"/>
-        <h3>Kitchen & Bath</h3>
-      </div>
-      <div class="service-item">
-        <img src="/assets/img/electrical.jpg" alt="Electrical work"/>
-        <h3>Electrical</h3>
-      </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
-  <!-- Contact Footer -->
   <footer>
-    <div class="footer-content">
-      <p>Contact us today for a free estimate!</p>
-      <p>Phone: (940) 371-9443 | Email: fixahome@yahoo.com</p>
-      <p>Serving Wise County, Texas and surrounding areas</p>
-      <p>&copy; 2026 Fix-A-Home Handyman Services LLC. All rights reserved.</p>
-    </div>
+    <p>&copy; 2026 Kikalo Designs. All rights reserved.</p>
   </footer>
 
+  <script src="/assets/js/script.js"></script>  <!-- your JS for updates, preview, payment -->
 </body>
 </html>
