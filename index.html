@@ -1,1 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L-Bracket Configurator</title>
+  <link rel="stylesheet" href="styles.css">  <!-- your CSS file -->
+  <!-- Optional: favicon, meta description, etc. -->
+</head>
+<body>
 
+  <header>
+    <h1>L-Bracket Configurator</h1>
+    <nav>
+      <!-- Add links if needed: Home, About, Contact -->
+    </nav>
+  </header>
+
+  <main>
+    <section class="configurator">
+      <div class="preview">
+        <!-- Product preview image or canvas here -->
+        <img id="preview-img" src="images/default-lbracket.jpg" alt="L-Bracket Preview">
+        <!-- Or use <canvas> for dynamic 2D/3D preview -->
+      </div>
+
+      <div class="controls">
+        <h2>Customize Your Bracket</h2>
+        
+        <label>Length (mm):
+          <input type="number" id="length" min="50" value="100">
+        </label>
+        
+        <label>Width (mm):
+          <input type="number" id="width" min="30" value="50">
+        </label>
+        
+        <label>Thickness (mm):
+          <input type="number" id="thickness" min="1" max="10" value="3">
+        </label>
+        
+        <!-- Add more options: material, bend radius, holes, etc. -->
+        
+        <button id="generate">Generate DXF & Pay $3.90</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Kikalo Designs. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>  <!-- your JS for updates, preview, payment -->
+</body>
+</html>
