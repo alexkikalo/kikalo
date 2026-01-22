@@ -11,21 +11,18 @@ body {
 }
 
 /* Header / Navigation */
-header {
-  background: #ffffff;
-  padding: 1rem 2rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+.header {
+  padding: 1rem 0;           /* adjust as needed */
+  background: #fff;          /* or your color */
 }
-nav {
+
+.header-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
+  align-items: center;       /* vertically centers logo and menu */
+  justify-content: space-between;  /* logo left, menu right */
   max-width: 1200px;
   margin: 0 auto;
-  position: relative;
+  padding: 0 20px;
 }
 /*.logo {
   position: absolute;
