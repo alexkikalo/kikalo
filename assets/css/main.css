@@ -5,7 +5,7 @@
   box-sizing: border-box;
 }
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Futura, Helvetica, sans-serif;
   line-height: 1.6;
   color: #333;
 }
@@ -91,7 +91,7 @@ nav a:hover {
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  color: white;
+  color: #004aad;
   z-index: 1;
 }
 
@@ -103,6 +103,7 @@ nav a:hover {
 .hero p {
   font-size: 1.4rem;
   margin-bottom: 2rem;
+  
 }
 
 .btn {
