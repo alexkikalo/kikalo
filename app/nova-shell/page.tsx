@@ -1,3 +1,5 @@
+'use client'
+
 import { NovaShellConfigurator } from '@/components/configurator/NovaShellConfigurator'
 import type { Metadata } from 'next'
 
