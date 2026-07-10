@@ -15,7 +15,7 @@ export default function NovaShellPage() {
           <a href="/" className="flex items-center gap-3">
             <div className="h-7 w-7 rounded bg-white" />
             <div className="font-semibold tracking-tighter">KIKALO</div>
-          </div>
+          </a>
           <div className="flex items-center gap-4 text-sm">
             <a href="/" className="text-zinc-400 hover:text-white transition">Back to Kikalo</a>
             <a href="#configurator" className="rounded-full border border-white/20 px-4 py-1 text-xs font-medium tracking-widest transition hover:bg-white hover:text-black">CONFIGURATOR</a>
