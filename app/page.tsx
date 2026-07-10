@@ -9,13 +9,13 @@ export default function KikaloHome() {
       {/* Simple professional nav */}
       <nav className="border-b border-white/10 bg-zinc-950/80 backdrop-blur-lg sticky top-0 z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded bg-white" />
-            <div>
-              <div className="font-semibold tracking-tighter text-xl">KIKALO</div>
-              <div className="text-[10px] text-zinc-500 -mt-1">NORTH TEXAS</div>
-            </div>
-          </div>
+          <Link href="/" className="flex items-center gap-3">
+            <img 
+              src="/images/Color Logo.png" 
+              alt="Kikalo Logo" 
+              className="h-9 w-auto" 
+            />
+          </Link>
           <div className="flex items-center gap-8 text-sm">
             <Link href="/nova-shell" className="font-medium text-white hover:text-zinc-300 transition">NovaShell</Link>
             <a href="#about" className="text-zinc-400 hover:text-white transition">About</a>
@@ -105,7 +105,7 @@ export default function KikaloHome() {
         <div className="mx-auto max-w-5xl px-6">
           <div className="text-center mb-12">
             <div className="text-xs tracking-[2px] text-emerald-400">WHAT WE BUILD</div>
-            <h3 className="text-3xl font-semibold tracking-tight mt-2">Engineering-grade products for serious makers &amp; teams</h3>
+            <h3 className="text-3xl font-semibold tracking-tight mt-2">Engineering-grade products for serious makers & teams</h3>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
