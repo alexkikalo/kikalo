@@ -25,7 +25,19 @@ export function NovaShellConfigurator() {
   const openQuote = () => { setModalMode('quote'); setIsModalOpen(true) }
 
   const handleDownloadSTEP = (variant: NovaShellVariant) => {
-    const content = `ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('NovaShell ${variant.name} STEP export placeholder'),'2;1');\nFILE_NAME('${variant.stepFileName}','${new Date().toISOString()}',('Kikalo Engineering'),('NovaShell by Kikalo.net'),'','SolidWorks / Onshape export','');\nFILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 }'));\nENDSEC;\nDATA;\n#1 = APPLICATION_CONTEXT('mechanical design');\n/* \n  This is a placeholder .step file.\n  \n  HOW TO CONNECT REAL FILES:\n  1. Export real STEP from Onshape or SolidWorks.\n  2. Place files in /public/downloads/\n  3. Update this function to window.open(`/downloads/${variant.stepFileName}`, '_blank')\n*/\nENDSEC;\nEND-ISO-10303-21;`
+    // Clean placeholder STEP content (real files should be placed in /public/downloads/)
+    const content = `ISO-10303-21;
+HEADER;
+FILE_DESCRIPTION(('NovaShell ${variant.name} STEP export placeholder'),'2;1');
+FILE_NAME('${variant.stepFileName}','${new Date().toISOString()}',('Kikalo Engineering'),('NovaShell by Kikalo.net'),'','SolidWorks / Onshape export','');
+FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 }'));
+ENDSEC;
+DATA;
+#1 = APPLICATION_CONTEXT('mechanical design');
+/* This is a placeholder. Replace with real STEP export from Onshape/SolidWorks. */
+ENDSEC;
+END-ISO-10303-21;`
+
     const blob = new Blob([content], { type: 'application/step' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
