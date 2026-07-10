@@ -13,8 +13,11 @@ export default function NovaShellPage() {
       <nav className="border-b border-white/10 bg-zinc-950/80 backdrop-blur-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <a href="/" className="flex items-center gap-3">
-            <div className="h-7 w-7 rounded bg-white" />
-            <div className="font-semibold tracking-tighter">KIKALO</div>
+            <img 
+              src="/images/Color Logo.png" 
+              alt="Kikalo Logo" 
+              className="h-8 w-auto" 
+            />
           </a>
           <div className="flex items-center gap-4 text-sm">
             <a href="/" className="text-zinc-400 hover:text-white transition">Back to Kikalo</a>
