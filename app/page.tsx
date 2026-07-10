@@ -27,20 +27,31 @@ export default function KikaloHome() {
         </div>
       </nav>
 
-      {/* Hero */}
+      {/* Hero with Video Background */}
       <section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden border-b border-white/10">
-        <div className="absolute inset-0 bg-[radial-gradient(#27272a_0.8px,transparent_1px)] bg-[length:4px_4px]" />
-        
+        {/* Background Video */}
+        <video 
+          autoPlay 
+          muted 
+          loop 
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover brightness-[0.55]"
+        >
+          <source src="/videos/Patribotic.mp4" type="video/mp4" />
+        </video>
+
+        <div className="absolute inset-0 bg-black/40" /> {/* Subtle overlay for readability */}
+
         <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs tracking-[2.5px] text-zinc-400 mb-6">
             MADE IN TEXAS • AMERICAN MANUFACTURING
           </div>
           
-          <h1 className="text-balance text-7xl font-semibold tracking-tighter md:text-8xl">
+          <h1 className="text-balance text-7xl font-semibold tracking-tighter md:text-8xl text-white drop-shadow-lg">
             We can shape the<br />American Tomorrow.
           </h1>
           
-          <p className="mx-auto mt-6 max-w-md text-xl text-zinc-400">
+          <p className="mx-auto mt-6 max-w-md text-xl text-zinc-200">
             Precision engineering. Modular aluminum enclosures. 
             Built for makers, engineers, and OEMs who demand quality.
           </p>
@@ -56,13 +67,13 @@ export default function KikaloHome() {
             
             <a 
               href="#capabilities" 
-              className="inline-flex items-center gap-3 rounded-2xl border border-white/20 px-8 py-4 text-base font-medium transition hover:bg-white/5"
+              className="inline-flex items-center gap-3 rounded-2xl border border-white/20 px-8 py-4 text-base font-medium transition hover:bg-white/10 text-white"
             >
               Explore Capabilities
             </a>
           </div>
 
-          <p className="mt-6 text-xs text-zinc-500">NovaShell preconfigured sizes ship in 1–7 days • Full custom available</p>
+          <p className="mt-6 text-xs text-zinc-300">NovaShell preconfigured sizes ship in 1–7 days • Full custom available</p>
         </div>
       </section>
 
