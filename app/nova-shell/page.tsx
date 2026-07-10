@@ -1,17 +1,10 @@
-import dynamic from 'next/dynamic'
 import type { Metadata } from 'next'
+import { NovaShellClientWrapper } from '@/components/configurator/NovaShellClientWrapper'
 
 export const metadata: Metadata = {
   title: 'NovaShell | Premium Modular Aluminum Enclosures',
   description: 'Precision-engineered modular aluminum enclosures for Raspberry Pi, Jetson, custom electronics, and OEM applications. Preconfigured sizes ready to ship from North Texas. Full custom available.',
 }
-
-// Dynamically import the configurator with SSR disabled
-// This is required because it uses React Three Fiber / Three.js (client-only)
-const NovaShellConfigurator = dynamic(
-  () => import('@/components/configurator/NovaShellConfigurator').then(mod => mod.NovaShellConfigurator),
-  { ssr: false }
-)
 
 export default function NovaShellPage() {
   return (
@@ -30,7 +23,7 @@ export default function NovaShellPage() {
         </div>
       </nav>
 
-      <NovaShellConfigurator />
+      <NovaShellClientWrapper />
 
       <footer className="border-t border-white/10 bg-zinc-950 py-10">
         <div className="mx-auto max-w-4xl px-6 text-center text-xs text-zinc-500">
