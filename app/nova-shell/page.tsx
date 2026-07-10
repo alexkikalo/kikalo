@@ -31,7 +31,7 @@ export default function NovaShellPage() {
       <footer className="border-t border-white/10 bg-zinc-950 py-10">
         <div className="mx-auto max-w-4xl px-6 text-center text-xs text-zinc-500">
           Questions about volume pricing, custom finishes, or integration? 
-          <a href="mailto:alexkikalo@gmail.com" className="underline underline-offset-2 hover:text-white">Email Alex directly</a>
+          <a href="mailto:admin@kikalo.net" className="underline underline-offset-2 hover:text-white">Contact us</a>
         </div>
       </footer>
     </main>
