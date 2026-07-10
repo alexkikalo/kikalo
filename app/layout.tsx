@@ -5,7 +5,9 @@ export const metadata: Metadata = {
   title: "Kikalo | Premium American Manufacturing & NovaShell Enclosures",
   description: "Precision modular aluminum enclosures and custom engineering. NovaShell — ready-to-ship and fully custom options. Made in North Texas.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/images/Color.png",
+    shortcut: "/images/Color.png",
+    apple: "/images/Color.png",
   },
 };
 
