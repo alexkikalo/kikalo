@@ -18,7 +18,7 @@ export default function NovaShellPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white selection:bg-white selection:text-black">
       {/* Minimal nav for the configurator page */}
-      <nav className="border-b border-white/10 bg-zinc-950/80 backdrop-blur-lg">
+      <nav className="border-b border-white/10 bg-zinc-950/80 backdrop-blur-lg z-50">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <a href="/" className="flex items-center gap-3">
             <img 
@@ -46,7 +46,7 @@ export default function NovaShellPage() {
 
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-white/10 bg-zinc-950/95 px-6 py-4">
+          <div className="md:hidden relative z-50 border-t border-white/10 bg-zinc-950/95 px-6 py-4 shadow-lg">
             <div className="flex flex-col gap-4 text-sm">
               <a href="/" onClick={closeMobileMenu} className="text-zinc-400 hover:text-white transition py-1">Back to Kikalo</a>
               <a 
