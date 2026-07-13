@@ -1,9 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Box, Award, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Box, Award, Clock, Menu, X } from 'lucide-react';
 
 export default function KikaloHome() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       {/* Simple professional nav */}
@@ -16,7 +21,9 @@ export default function KikaloHome() {
               className="h-8 w-auto" 
             />
           </Link>
-          <div className="flex items-center gap-8 text-sm">
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8 text-sm">
             <Link href="/nova-shell" className="font-medium text-white hover:text-zinc-300 transition">NovaShell</Link>
             <a href="#about" className="text-zinc-400 hover:text-white transition">About</a>
             <a href="#capabilities" className="text-zinc-400 hover:text-white transition">Capabilities</a>
@@ -24,7 +31,34 @@ export default function KikaloHome() {
               CONFIGURATOR
             </Link>
           </div>
+
+          {/* Mobile Hamburger */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-white"
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-white/10 bg-zinc-950/95 px-6 py-4">
+            <div className="flex flex-col gap-4 text-sm">
+              <Link href="/nova-shell" onClick={closeMobileMenu} className="font-medium text-white hover:text-zinc-300 transition py-1">NovaShell</Link>
+              <a href="#about" onClick={closeMobileMenu} className="text-zinc-400 hover:text-white transition py-1">About</a>
+              <a href="#capabilities" onClick={closeMobileMenu} className="text-zinc-400 hover:text-white transition py-1">Capabilities</a>
+              <Link 
+                href="/nova-shell" 
+                onClick={closeMobileMenu}
+                className="mt-2 inline-flex w-full items-center justify-center rounded-full border border-white/20 px-5 py-2 text-xs font-medium tracking-widest transition hover:bg-white hover:text-black"
+              >
+                CONFIGURATOR
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero with Video Background */}
