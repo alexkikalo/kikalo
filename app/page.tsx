@@ -11,9 +11,9 @@ export default function KikaloHome() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <Link href="/" className="flex items-center gap-3">
             <img 
-              src="/images/Color Logo.png" 
+              src="/images/Color.png" 
               alt="Kikalo Logo" 
-              className="h-9 w-auto" 
+              className="h-8 w-auto" 
             />
           </Link>
           <div className="flex items-center gap-8 text-sm">
