@@ -164,7 +164,7 @@ export default function KikaloHome() {
             <div className="rounded-3xl border border-white/10 p-8">
               <div className="flex items-center gap-2 mb-3">
                 <div className="font-semibold text-xl">Smart FMEA</div>
-                <span className="rounded-full border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium tracking-wider text-cyan-400">COMING SOON</span>
+                <span className="rounded-full border border-[#004AAD]/50 bg-[#004AAD]/15 px-2 py-0.5 text-[10px] font-medium tracking-wider text-[#7BA3E0]">COMING SOON</span>
               </div>
               <p className="text-zinc-400">Guided DFMEA, PFMEA, and Control Plan generator. Step-by-step intelligence that produces professional PDF and spreadsheet deliverables.</p>
               <Link href="/fmea" className="mt-6 inline-flex items-center text-sm font-medium text-white group">Learn more <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition" /></Link>
