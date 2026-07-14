@@ -25,6 +25,7 @@ export default function KikaloHome() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8 text-sm">
             <Link href="/nova-shell" className="font-medium text-white hover:text-zinc-300 transition">NovaShell</Link>
+            <Link href="/fmea" className="text-zinc-400 hover:text-white transition">Smart FMEA</Link>
             <a href="#about" className="text-zinc-400 hover:text-white transition">About</a>
             <a href="#capabilities" className="text-zinc-400 hover:text-white transition">Capabilities</a>
             <Link href="/nova-shell" className="rounded-full border border-white/20 px-5 py-1.5 text-xs font-medium tracking-widest transition hover:bg-white hover:text-black">
@@ -47,6 +48,7 @@ export default function KikaloHome() {
           <div className="md:hidden border-t border-white/10 bg-zinc-950/95 px-6 py-4">
             <div className="flex flex-col gap-4 text-sm">
               <Link href="/nova-shell" onClick={closeMobileMenu} className="font-medium text-white hover:text-zinc-300 transition py-1">NovaShell</Link>
+              <Link href="/fmea" onClick={closeMobileMenu} className="text-zinc-400 hover:text-white transition py-1">Smart FMEA</Link>
               <a href="#about" onClick={closeMobileMenu} className="text-zinc-400 hover:text-white transition py-1">About</a>
               <a href="#capabilities" onClick={closeMobileMenu} className="text-zinc-400 hover:text-white transition py-1">Capabilities</a>
               <Link 
@@ -159,9 +161,13 @@ export default function KikaloHome() {
               <p className="text-zinc-400">Premium modular aluminum enclosures for SBCs, embedded systems, and OEM electronics. Preconfigured sizes ready to ship + full custom capability.</p>
               <Link href="/nova-shell" className="mt-6 inline-flex items-center text-sm font-medium text-white group">Open Configurator <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition" /></Link>
             </div>
-            <div className="rounded-3xl border border-white/10 p-8 opacity-75">
-              <div className="font-semibold text-xl mb-3">Custom Mechanical Systems</div>
-              <p className="text-zinc-400">Machine design, automation fixtures, structural components, and greenfield manufacturing projects. (Coming into focus on this new Next.js site)</p>
+            <div className="rounded-3xl border border-white/10 p-8">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="font-semibold text-xl">Smart FMEA</div>
+                <span className="rounded-full border border-cyan-500/40 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium tracking-wider text-cyan-400">COMING SOON</span>
+              </div>
+              <p className="text-zinc-400">Guided DFMEA, PFMEA, and Control Plan generator. Step-by-step intelligence that produces professional PDF and spreadsheet deliverables.</p>
+              <Link href="/fmea" className="mt-6 inline-flex items-center text-sm font-medium text-white group">Learn more <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition" /></Link>
             </div>
           </div>
         </div>
