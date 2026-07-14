@@ -1,108 +1,54 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { ArrowRight, Box, Award, Clock, Menu, X } from 'lucide-react';
+import { ArrowRight, Box, Award, Clock } from 'lucide-react';
+import { SiteNav } from '@/components/SiteNav';
 
 export default function KikaloHome() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const closeMobileMenu = () => setIsMobileMenuOpen(false);
-
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
-      {/* Simple professional nav */}
-      <nav className="border-b border-white/10 bg-zinc-950/80 backdrop-blur-lg sticky top-0 z-50">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <Link href="/" className="flex items-center gap-3">
-            <img 
-              src="/images/Color.png" 
-              alt="Kikalo Logo" 
-              className="h-8 w-auto" 
-            />
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8 text-sm">
-            <Link href="/nova-shell" className="font-medium text-white hover:text-zinc-300 transition">NovaShell</Link>
-            <Link href="/fmea" className="text-zinc-400 hover:text-white transition">Smart FMEA</Link>
-            <a href="#about" className="text-zinc-400 hover:text-white transition">About</a>
-            <a href="#capabilities" className="text-zinc-400 hover:text-white transition">Capabilities</a>
-            <Link href="/nova-shell" className="rounded-full border border-white/20 px-5 py-1.5 text-xs font-medium tracking-widest transition hover:bg-white hover:text-black">
-              CONFIGURATOR
-            </Link>
-          </div>
-
-          {/* Mobile Hamburger */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-white"
-            aria-label="Toggle menu"
-          >
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
-
-        {/* Mobile Menu Dropdown */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-white/10 bg-zinc-950/95 px-6 py-4">
-            <div className="flex flex-col gap-4 text-sm">
-              <Link href="/nova-shell" onClick={closeMobileMenu} className="font-medium text-white hover:text-zinc-300 transition py-1">NovaShell</Link>
-              <Link href="/fmea" onClick={closeMobileMenu} className="text-zinc-400 hover:text-white transition py-1">Smart FMEA</Link>
-              <a href="#about" onClick={closeMobileMenu} className="text-zinc-400 hover:text-white transition py-1">About</a>
-              <a href="#capabilities" onClick={closeMobileMenu} className="text-zinc-400 hover:text-white transition py-1">Capabilities</a>
-              <Link 
-                href="/nova-shell" 
-                onClick={closeMobileMenu}
-                className="mt-2 inline-flex w-full items-center justify-center rounded-full border border-white/20 px-5 py-2 text-xs font-medium tracking-widest transition hover:bg-white hover:text-black"
-              >
-                CONFIGURATOR
-              </Link>
-            </div>
-          </div>
-        )}
-      </nav>
+      <SiteNav />
 
       {/* Hero with Video Background */}
       <section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden border-b border-white/10">
         {/* Background Video */}
-        <video 
-          autoPlay 
-          muted 
-          loop 
+        <video
+          autoPlay
+          muted
+          loop
           playsInline
           className="absolute inset-0 w-full h-full object-cover brightness-[0.55]"
         >
           <source src="/videos/Patribotic.mp4" type="video/mp4" />
         </video>
 
-        <div className="absolute inset-0 bg-black/40" /> {/* Subtle overlay for readability */}
+        <div className="absolute inset-0 bg-black/40" />
 
         <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs tracking-[2.5px] text-zinc-400 mb-6">
             MADE IN TEXAS • AMERICAN MANUFACTURING
           </div>
-          
+
           <h1 className="text-balance text-7xl font-semibold tracking-tighter md:text-8xl text-white drop-shadow-lg">
             We can shape the<br />American Tomorrow.
           </h1>
-          
+
           <p className="mx-auto mt-6 max-w-md text-xl text-zinc-200">
-            Precision engineering. Modular aluminum enclosures. 
+            Precision engineering. Modular aluminum enclosures.
             Built for makers, engineers, and OEMs who demand quality.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link 
-              href="/nova-shell" 
+            <Link
+              href="/nova-shell"
               className="group inline-flex items-center gap-3 rounded-2xl bg-white px-10 py-4 text-base font-semibold text-black transition active:scale-[0.985]"
             >
               Launch NovaShell Configurator
               <ArrowRight className="h-5 w-5 transition group-hover:translate-x-0.5" />
             </Link>
-            
-            <a 
-              href="#capabilities" 
+
+            <a
+              href="#capabilities"
               className="inline-flex items-center gap-3 rounded-2xl border border-white/20 px-8 py-4 text-base font-medium transition hover:bg-white/10 text-white"
             >
               Explore Capabilities
@@ -116,7 +62,7 @@ export default function KikaloHome() {
       {/* Trust / Quick value props */}
       <section className="border-b border-white/10 py-12">
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-6 md:grid-cols-3">
-          {[ 
+          {[
             { icon: Box, label: "Modular by Design", desc: "Swap plates, expand later. Built for real engineering workflows." },
             { icon: Award, label: "Premium Materials", desc: "6061-T6 Aluminum with Type II anodize. Made to last decades." },
             { icon: Clock, label: "Fast Texas Production", desc: "Most preconfigured NovaShell units ship in 1–7 business days." },
@@ -137,7 +83,7 @@ export default function KikaloHome() {
         <div className="text-sm tracking-[3px] text-zinc-500 mb-3">EST. NORTH TEXAS</div>
         <h2 className="text-4xl font-semibold tracking-tight">Kikalo is building durable tools for the builders of tomorrow.</h2>
         <p className="mt-6 text-lg text-zinc-400">
-          From precision enclosures to custom mechanical systems, we combine old-world craftsmanship with modern digital manufacturing. 
+          From precision enclosures to custom mechanical systems, we combine old-world craftsmanship with modern digital manufacturing.
           Every product is designed to be repaired, upgraded, and passed down.
         </p>
         <div className="mt-8">
@@ -154,12 +100,14 @@ export default function KikaloHome() {
             <div className="text-xs tracking-[2px] text-zinc-400">WHAT WE BUILD</div>
             <h3 className="text-3xl font-semibold tracking-tight mt-2">Engineering-grade products for serious makers & teams</h3>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-6">
             <div className="rounded-3xl border border-white/10 p-8">
               <div className="font-semibold text-xl mb-3">NovaShell Enclosures</div>
               <p className="text-zinc-400">Premium modular aluminum enclosures for SBCs, embedded systems, and OEM electronics. Preconfigured sizes ready to ship + full custom capability.</p>
-              <Link href="/nova-shell" className="mt-6 inline-flex items-center text-sm font-medium text-white group">Open Configurator <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition" /></Link>
+              <Link href="/nova-shell" className="mt-6 inline-flex items-center text-sm font-medium text-white group">
+                Open Configurator <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition" />
+              </Link>
             </div>
             <div className="rounded-3xl border border-white/10 p-8">
               <div className="flex items-center gap-2 mb-3">
@@ -167,7 +115,9 @@ export default function KikaloHome() {
                 <span className="rounded-full border border-white/20 bg-white/5 px-2 py-0.5 text-[10px] font-medium tracking-wider text-zinc-400">COMING SOON</span>
               </div>
               <p className="text-zinc-400">Guided DFMEA, PFMEA, and Control Plan generator. Step-by-step intelligence that produces professional PDF and spreadsheet deliverables.</p>
-              <Link href="/fmea" className="mt-6 inline-flex items-center text-sm font-medium text-white group">Learn more <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition" /></Link>
+              <Link href="/fmea" className="mt-6 inline-flex items-center text-sm font-medium text-white group">
+                Learn more <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 transition" />
+              </Link>
             </div>
           </div>
         </div>

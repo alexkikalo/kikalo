@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowLeft, FileSpreadsheet, Layers, ShieldCheck, Sparkles } from 'lucide-react'
+import { FileSpreadsheet, Layers, ShieldCheck, Sparkles } from 'lucide-react'
+import { SiteNav } from '@/components/SiteNav'
 
 export const metadata: Metadata = {
   title: 'Smart FMEA | Coming Soon | Kikalo',
@@ -10,25 +11,7 @@ export const metadata: Metadata = {
 export default function FMEAComingSoonPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white selection:bg-white selection:text-black">
-      {/* Nav — matches site style */}
-      <nav className="border-b border-white/10 bg-zinc-950/80 backdrop-blur-lg sticky top-0 z-50">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href="/" className="flex items-center gap-3">
-            <img
-              src="/images/Color.png"
-              alt="Kikalo Logo"
-              className="h-8 w-auto"
-            />
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Kikalo
-          </Link>
-        </div>
-      </nav>
+      <SiteNav />
 
       {/* Hero */}
       <section className="relative flex min-h-[80vh] flex-col items-center justify-center px-6 py-20">
