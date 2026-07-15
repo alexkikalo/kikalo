@@ -235,7 +235,7 @@ END-ISO-10303-21;`
                     <button onClick={() => handleDownloadSTEP(activeVariant)} className="flex items-center justify-center gap-2 rounded-2xl border border-zinc-700 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-900 active:bg-zinc-950"><Download className="h-4 w-4" /> DOWNLOAD STEP</button>
                     <button onClick={openQuote} className="flex items-center justify-center gap-2 rounded-2xl border border-white/20 py-3.5 text-sm font-medium text-white transition hover:bg-white/5"><MessageCircle className="h-4 w-4" /> REQUEST CUSTOM</button>
                   </div>
-                </data>
+                </div>
                 <p className="mt-4 text-center text-[10px] text-zinc-500">Prices in USD • Volume discounts available • Made in USA</p>
               </div>
             </div>
