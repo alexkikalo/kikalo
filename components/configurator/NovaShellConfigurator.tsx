@@ -1,16 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ThreeDViewer } from './ThreeDViewer'
 import { OnshapeGeometry } from './OnshapeGeometry'
 import { PurchaseModal } from './PurchaseModal'
 import { variants, getVariantById, defaultVariantId, type NovaShellVariant } from '@/lib/variants'
-import { Download, MessageCircle, ShoppingCart, ArrowRight, Star } from 'lucide-react'
+import { Download, MessageCircle, ShoppingCart, ArrowRight, Star, RefreshCw } from 'lucide-react'
 
-// Default custom dimensions in inches (near current Standard size)
+// Default custom dimensions in inches
 const DEFAULT_CUSTOM_DIMS = { width: 4.72, depth: 3.74, height: 1.77 }
 
-// Reasonable ranges in inches
 const CUSTOM_RANGES = {
   width:  { min: 2.5,  max: 10.0, step: 0.01 },
   depth:  { min: 2.0,  max: 6.5,  step: 0.01 },
@@ -24,14 +23,13 @@ export function NovaShellConfigurator() {
   const [modalMode, setModalMode] = useState<'purchase' | 'quote'>('purchase')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Onshape geometry fetching state
+  // Onshape geometry state
   const [isLoadingGeometry, setIsLoadingGeometry] = useState(false)
   const [geometryData, setGeometryData] = useState<any>(null)
   const [geometryError, setGeometryError] = useState<string | null>(null)
 
   const selectedVariant = getVariantById(selectedId) || variants[0]
 
-  // Create a temporary variant object for custom sizes (dimensions now in inches)
   const customVariant: NovaShellVariant = {
     id: 'custom',
     name: 'Custom NovaShell',
@@ -46,47 +44,55 @@ export function NovaShellConfigurator() {
     stepFileName: 'novashell-custom.step',
   }
 
-  // The variant currently being previewed
   const activeVariant = mode === 'custom' ? customVariant : selectedVariant
 
-  // Debounced geometry fetching when in custom mode (now sends inches directly)
+  // Fetch geometry function (extracted for manual refresh)
+  const fetchGeometry = useCallback(async (force = false) => {
+    if (mode !== 'custom') return
+
+    setIsLoadingGeometry(true)
+    setGeometryError(null)
+
+    try {
+      const params = new URLSearchParams({
+        width: customDimensions.width.toFixed(3),
+        depth: customDimensions.depth.toFixed(3),
+        height: customDimensions.height.toFixed(3),
+      })
+
+      const res = await fetch(`/api/onshape/geometry?${params.toString()}`, {
+        cache: force ? 'no-store' : 'default',
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        setGeometryData(data)
+        console.log('Onshape geometry response:', data)
+      } else {
+        setGeometryError(data.error || 'Failed to load geometry')
+      }
+    } catch (err) {
+      setGeometryError('Network error while loading geometry')
+      console.error(err)
+    } finally {
+      setIsLoadingGeometry(false)
+    }
+  }, [mode, customDimensions])
+
+  // Auto-fetch when dimensions or mode change
   useEffect(() => {
-    if (mode !== 'custom') {
+    if (mode === 'custom') {
+      const timeout = setTimeout(() => fetchGeometry(), 600)
+      return () => clearTimeout(timeout)
+    } else {
       setGeometryData(null)
       setGeometryError(null)
-      return
     }
+  }, [mode, customDimensions, fetchGeometry])
 
-    const timeout = setTimeout(async () => {
-      setIsLoadingGeometry(true)
-      setGeometryError(null)
-
-      try {
-        const params = new URLSearchParams({
-          width: customDimensions.width.toFixed(3),
-          depth: customDimensions.depth.toFixed(3),
-          height: customDimensions.height.toFixed(3),
-        })
-
-        const res = await fetch(`/api/onshape/geometry?${params.toString()}`)
-        const data = await res.json()
-
-        if (data.success) {
-          setGeometryData(data)
-          console.log('Onshape geometry response:', data)
-        } else {
-          setGeometryError(data.error || 'Failed to load geometry')
-        }
-      } catch (err) {
-        setGeometryError('Network error while loading geometry')
-        console.error(err)
-      } finally {
-        setIsLoadingGeometry(false)
-      }
-    }, 600)
-
-    return () => clearTimeout(timeout)
-  }, [mode, customDimensions])
+  const handleRefreshGeometry = () => {
+    fetchGeometry(true)
+  }
 
   const handleSelectVariant = (id: string) => {
     setMode('preset')
@@ -100,7 +106,6 @@ export function NovaShellConfigurator() {
   const switchToCustom = () => setMode('custom')
   const switchToPreset = () => setMode('preset')
 
-  // Update a single dimension
   const updateDimension = (key: 'width' | 'depth' | 'height', value: number) => {
     setCustomDimensions(prev => ({ ...prev, [key]: value }))
     if (mode !== 'custom') setMode('custom')
@@ -212,9 +217,19 @@ END-ISO-10303-21;`
               {/* Custom Size Controls */}
               {mode === 'custom' && (
                 <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
-                  <div className="mb-4">
-                    <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
-                    <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
+                      <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
+                    </div>
+                    <button
+                      onClick={handleRefreshGeometry}
+                      disabled={isLoadingGeometry}
+                      className="flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white transition hover:bg-white/5 disabled:opacity-50"
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${isLoadingGeometry ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </button>
                   </div>
 
                   {/* Geometry Status */}
@@ -277,7 +292,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    Dimensions in inches. A more precise version is loading in the background.
+                    Dimensions in inches. Real geometry can sometimes need a manual refresh.
                   </div>
                 </div>
               )}
