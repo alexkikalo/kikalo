@@ -261,7 +261,7 @@ END-ISO-10303-21;`
                     )}
                   </div>
 
-                  {/* Live Dimension Controls */}
+                  {/* Live Dimension Controls - id/name added for autofill/accessibility */}
                   <div className="space-y-5">
                     {(['width', 'depth', 'height'] as const).map((key) => {
                       const label = key === 'width' ? 'Width' : key === 'depth' ? 'Depth' : 'Height'
@@ -277,6 +277,8 @@ END-ISO-10303-21;`
                           </div>
                           <div className="flex items-center gap-3">
                             <input
+                              id={`${key}-range`}
+                              name={`${key}-range`}
                               type="range"
                               min={range.min}
                               max={range.max}
@@ -286,6 +288,8 @@ END-ISO-10303-21;`
                               className="flex-1 accent-white"
                             />
                             <input
+                              id={`${key}-number`}
+                              name={`${key}-number`}
                               type="number"
                               min={range.min}
                               max={range.max}
