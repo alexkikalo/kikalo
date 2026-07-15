@@ -18,7 +18,7 @@ const CUSTOM_RANGES = {
 
 export function NovaShellConfigurator() {
   const [selectedId, setSelectedId] = useState(defaultVariantId)
-  const [isCustomMode, setIsCustomMode] = useState(false)
+  const [mode, setMode] = useState<'preset' | 'custom'>('preset')
   const [customDimensions, setCustomDimensions] = useState(DEFAULT_CUSTOM_DIMS)
   const [modalMode, setModalMode] = useState<'purchase' | 'quote'>('purchase')
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -41,10 +41,10 @@ export function NovaShellConfigurator() {
   }
 
   // The variant currently being previewed
-  const activeVariant = isCustomMode ? customVariant : selectedVariant
+  const activeVariant = mode === 'custom' ? customVariant : selectedVariant
 
   const handleSelectVariant = (id: string) => {
-    setIsCustomMode(false)
+    setMode('preset')
     setSelectedId(id)
     if (window.innerWidth < 1024) {
       const viewer = document.getElementById('novashell-viewer')
@@ -52,14 +52,13 @@ export function NovaShellConfigurator() {
     }
   }
 
-  const enterCustomMode = () => {
-    setIsCustomMode(true)
-  }
+  const switchToCustom = () => setMode('custom')
+  const switchToPreset = () => setMode('preset')
 
   // Update a single dimension
   const updateDimension = (key: 'width' | 'depth' | 'height', value: number) => {
     setCustomDimensions(prev => ({ ...prev, [key]: value }))
-    if (!isCustomMode) setIsCustomMode(true)
+    if (mode !== 'custom') setMode('custom')
   }
 
   const openPurchase = () => { setModalMode('purchase'); setIsModalOpen(true) }
@@ -114,90 +113,105 @@ END-ISO-10303-21;`
 
           <div className="lg:col-span-2">
             <div className="sticky top-6 space-y-6">
-              {/* Preconfigured Sizes */}
-              <div>
-                <div className="mb-3 flex items-center justify-between px-1"><div className="text-sm font-medium tracking-widest text-zinc-400">PRECONFIGURED SIZES</div><div className="text-[10px] text-zinc-500">EDIT IN lib/variants.ts</div></div>
-                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
-                  {variants.map((variant) => {
-                    const isActive = variant.id === selectedId && !isCustomMode
-                    return (
-                      <button key={variant.id} onClick={() => handleSelectVariant(variant.id)} className={`group w-full rounded-3xl border p-4 text-left transition-all active:scale-[0.985] ${isActive ? 'border-white/70 bg-zinc-900 shadow-xl' : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700 hover:bg-zinc-900/70'}`}>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <div className="flex items-center gap-2"><span className="font-semibold text-white">{variant.name}</span>{variant.popular && <span className="inline-flex items-center gap-px rounded bg-emerald-500/10 px-1.5 py-px text-[9px] font-medium text-emerald-400"><Star className="h-2.5 w-2.5" /> POPULAR</span>}</div>
-                            <div className="mt-0.5 text-xs text-zinc-400 line-clamp-2 pr-2">{variant.description}</div>
-                          </div>
-                          <div className="text-right font-mono text-xl font-semibold tabular-nums text-white">${variant.price}</div>
-                        </div>
-                        <div className="mt-3 flex items-center justify-between text-[10px]"><div className="font-mono text-zinc-500">{variant.dimensions.width}×{variant.dimensions.depth}×{variant.dimensions.height} mm</div><div className="text-emerald-400/90">{variant.leadTime}</div></div>
-                      </button>
-                    )
-                  })}
-                </div>
+              {/* Mode Toggle */}
+              <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1">
+                <button
+                  onClick={switchToPreset}
+                  className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition ${mode === 'preset' ? 'bg-white text-black shadow' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  Preset Sizes
+                </button>
+                <button
+                  onClick={switchToCustom}
+                  className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition ${mode === 'custom' ? 'bg-white text-black shadow' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  Custom Size
+                </button>
               </div>
 
-              {/* Custom Size - Live Controls */}
-              <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
+              {/* Preset Sizes Grid */}
+              {mode === 'preset' && (
+                <div>
+                  <div className="mb-3 flex items-center justify-between px-1">
+                    <div className="text-sm font-medium tracking-widest text-zinc-400">PRECONFIGURED SIZES</div>
+                    <div className="text-[10px] text-zinc-500">EDIT IN lib/variants.ts</div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-1">
+                    {variants.map((variant) => {
+                      const isActive = variant.id === selectedId
+                      return (
+                        <button key={variant.id} onClick={() => handleSelectVariant(variant.id)} className={`group w-full rounded-3xl border p-4 text-left transition-all active:scale-[0.985] ${isActive ? 'border-white/70 bg-zinc-900 shadow-xl' : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700 hover:bg-zinc-900/70'}`}>
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-2"><span className="font-semibold text-white">{variant.name}</span>{variant.popular && <span className="inline-flex items-center gap-px rounded bg-emerald-500/10 px-1.5 py-px text-[9px] font-medium text-emerald-400"><Star className="h-2.5 w-2.5" /> POPULAR</span>}</div>
+                              <div className="mt-0.5 text-xs text-zinc-400 line-clamp-2 pr-2">{variant.description}</div>
+                            </div>
+                            <div className="text-right font-mono text-xl font-semibold tabular-nums text-white">${variant.price}</div>
+                          </div>
+                          <div className="mt-3 flex items-center justify-between text-[10px]"><div className="font-mono text-zinc-500">{variant.dimensions.width}×{variant.dimensions.depth}×{variant.dimensions.height} mm</div><div className="text-emerald-400/90">{variant.leadTime}</div></div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Size Controls */}
+              {mode === 'custom' && (
+                <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
+                  <div className="mb-4">
                     <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
                     <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
                   </div>
-                  <button
-                    onClick={enterCustomMode}
-                    className={`px-4 py-1.5 text-xs font-medium rounded-full transition ${isCustomMode ? 'bg-white text-black' : 'border border-white/30 hover:bg-white/5'}`}
-                  >
-                    {isCustomMode ? 'LIVE' : 'DESIGN'}
-                  </button>
-                </div>
 
-                {/* Live Dimension Controls */}
-                <div className="space-y-5">
-                  {(['width', 'depth', 'height'] as const).map((key) => {
-                    const label = key === 'width' ? 'Width' : key === 'depth' ? 'Depth' : 'Height'
-                    const unit = 'mm'
-                    const value = customDimensions[key]
-                    const range = CUSTOM_RANGES[key]
+                  {/* Live Dimension Controls */}
+                  <div className="space-y-5">
+                    {(['width', 'depth', 'height'] as const).map((key) => {
+                      const label = key === 'width' ? 'Width' : key === 'depth' ? 'Depth' : 'Height'
+                      const unit = 'mm'
+                      const value = customDimensions[key]
+                      const range = CUSTOM_RANGES[key]
 
-                    return (
-                      <div key={key}>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div className="text-sm font-medium text-white">{label}</div>
-                          <div className="font-mono text-sm tabular-nums text-white">{value} {unit}</div>
+                      return (
+                        <div key={key}>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="text-sm font-medium text-white">{label}</div>
+                            <div className="font-mono text-sm tabular-nums text-white">{value} {unit}</div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="range"
+                              min={range.min}
+                              max={range.max}
+                              step={range.step}
+                              value={value}
+                              onChange={(e) => updateDimension(key, parseInt(e.target.value))}
+                              className="flex-1 accent-white"
+                            />
+                            <input
+                              type="number"
+                              min={range.min}
+                              max={range.max}
+                              step={range.step}
+                              value={value}
+                              onChange={(e) => updateDimension(key, Math.max(range.min, Math.min(range.max, parseInt(e.target.value) || range.min)))}
+                              className="w-20 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-right font-mono text-sm text-white focus:border-white/60 focus:outline-none"
+                            />
+                          </div>
+                          <div className="mt-0.5 flex justify-between text-[10px] text-zinc-500">
+                            <div>{range.min}</div>
+                            <div>{range.max}</div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="range"
-                            min={range.min}
-                            max={range.max}
-                            step={range.step}
-                            value={value}
-                            onChange={(e) => updateDimension(key, parseInt(e.target.value))}
-                            className="flex-1 accent-white"
-                          />
-                          <input
-                            type="number"
-                            min={range.min}
-                            max={range.max}
-                            step={range.step}
-                            value={value}
-                            onChange={(e) => updateDimension(key, Math.max(range.min, Math.min(range.max, parseInt(e.target.value) || range.min)))}
-                            className="w-20 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-right font-mono text-sm text-white focus:border-white/60 focus:outline-none"
-                          />
-                        </div>
-                        <div className="mt-0.5 flex justify-between text-[10px] text-zinc-500">
-                          <div>{range.min}</div>
-                          <div>{range.max}</div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
+                      )
+                    })}
+                  </div>
 
-                <div className="mt-5 text-[10px] text-zinc-500">
-                  These dimensions drive the live 3D preview. Final manufacturing uses your Onshape model.
+                  <div className="mt-5 text-[10px] text-zinc-500">
+                    These dimensions update the live preview. Final parts are produced from your Onshape model.
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Selected / Summary Card */}
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
