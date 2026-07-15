@@ -59,7 +59,6 @@ export function NovaShellConfigurator() {
   }
 
   const openPurchase = () => { setModalMode('purchase'); setIsModalOpen(true) }
-  const openQuote = () => { setModalMode('quote'); setIsModalOpen(true) }
 
   const handleDownloadSTEP = (variant: NovaShellVariant) => {
     const content = `ISO-10303-21;
@@ -91,16 +90,11 @@ END-ISO-10303-21;`
         <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs tracking-[2px] text-zinc-400">MADE IN TEXAS • PREMIUM MODULAR ALUMINUM</div>
         <h1 className="mt-6 text-balance text-6xl font-semibold tracking-tighter text-white md:text-7xl">NovaShell</h1>
         <p className="mx-auto mt-4 max-w-md text-xl text-zinc-400">Precision modular aluminum enclosures for makers, engineers, and OEMs.<br />Built to last. Ready to ship.</p>
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <button onClick={() => document.getElementById('configurator')?.scrollIntoView({ behavior: 'smooth' })} className="group inline-flex items-center gap-3 rounded-2xl bg-white px-8 py-4 text-sm font-semibold text-black transition active:scale-[0.985]">BROWSE PRECONFIGURED SIZES <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></button>
-          <button onClick={openQuote} className="inline-flex items-center gap-3 rounded-2xl border border-white/20 px-8 py-4 text-sm font-medium text-white transition hover:bg-white/5 active:bg-white/10">REQUEST FULLY CUSTOM</button>
-        </div>
-        <p className="mt-4 text-xs text-zinc-500">Ships from North Texas • 1–7 day lead times • Volume pricing available</p>
       </div>
 
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
-          <div id="novashell-viewer" className="lg:col-span-3">
+          <div id="novashell-viewer" className="lg:col-span-3 min-h-[480px]">
             {/* Static GLTF with real-time scaling in Custom mode */}
             {mode === 'custom' ? (
               <StaticCaseViewer dimensions={customDimensions} />
@@ -233,7 +227,6 @@ END-ISO-10303-21;`
                   <button onClick={openPurchase} className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white py-4 text-sm font-semibold text-black transition active:bg-zinc-200"><ShoppingCart className="h-4 w-4" /> BUY NOW — ${activeVariant.price || 'Quote'}</button>
                   <div className="grid grid-cols-2 gap-3">
                     <button onClick={() => handleDownloadSTEP(activeVariant)} className="flex items-center justify-center gap-2 rounded-2xl border border-zinc-700 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-900 active:bg-zinc-950"><Download className="h-4 w-4" /> DOWNLOAD STEP</button>
-                    <button onClick={openQuote} className="flex items-center justify-center gap-2 rounded-2xl border border-white/20 py-3.5 text-sm font-medium text-white transition hover:bg-white/5"><MessageCircle className="h-4 w-4" /> REQUEST CUSTOM</button>
                   </div>
                 </div>
                 <p className="mt-4 text-center text-[10px] text-zinc-500">Prices in USD • Volume discounts available • Made in USA</p>
