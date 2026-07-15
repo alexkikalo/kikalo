@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { ThreeDViewer } from './ThreeDViewer'
-import { OnshapeGeometry } from './OnshapeGeometry'
+import { StaticCaseViewer } from './StaticCaseViewer'
 import { PurchaseModal } from './PurchaseModal'
 import { variants, getVariantById, defaultVariantId, type NovaShellVariant } from '@/lib/variants'
 import { Download, MessageCircle, ShoppingCart, ArrowRight, Star, RefreshCw } from 'lucide-react'
@@ -23,12 +23,6 @@ export function NovaShellConfigurator() {
   const [modalMode, setModalMode] = useState<'purchase' | 'quote'>('purchase')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Onshape geometry state
-  const [isLoadingGeometry, setIsLoadingGeometry] = useState(false)
-  const [geometryData, setGeometryData] = useState<any>(null)
-  const [geometryError, setGeometryError] = useState<string | null>(null)
-  const [showRealGeometry, setShowRealGeometry] = useState(false)
-
   const selectedVariant = getVariantById(selectedId) || variants[0]
 
   const customVariant: NovaShellVariant = {
@@ -47,61 +41,6 @@ export function NovaShellConfigurator() {
 
   const activeVariant = mode === 'custom' ? customVariant : selectedVariant
 
-  // Fetch geometry (background)
-  const fetchGeometry = useCallback(async (force = false) => {
-    if (mode !== 'custom') return
-
-    setIsLoadingGeometry(true)
-    if (!force) setGeometryError(null)
-
-    try {
-      const params = new URLSearchParams({
-        width: customDimensions.width.toFixed(3),
-        depth: customDimensions.depth.toFixed(3),
-        height: customDimensions.height.toFixed(3),
-      })
-
-      const res = await fetch(`/api/onshape/geometry?${params.toString()}`, {
-        cache: force ? 'no-store' : 'default',
-      })
-      const data = await res.json()
-
-      if (data.success && data.raw?.bodies?.length > 0) {
-        setGeometryData(data)
-        setShowRealGeometry(true)
-        console.log('Onshape geometry loaded successfully')
-      } else {
-        // No real geometry available — stay on procedural preview
-        setGeometryData(null)
-        setShowRealGeometry(false)
-        if (data.error) setGeometryError(data.error)
-      }
-    } catch (err) {
-      setGeometryError('Network error')
-      setShowRealGeometry(false)
-      console.error(err)
-    } finally {
-      setIsLoadingGeometry(false)
-    }
-  }, [mode, customDimensions])
-
-  // Auto-fetch when in custom mode
-  useEffect(() => {
-    if (mode === 'custom') {
-      const timeout = setTimeout(() => fetchGeometry(), 700)
-      return () => clearTimeout(timeout)
-    } else {
-      setGeometryData(null)
-      setShowRealGeometry(false)
-      setGeometryError(null)
-    }
-  }, [mode, customDimensions, fetchGeometry])
-
-  const handleRefreshGeometry = () => {
-    setShowRealGeometry(false)
-    fetchGeometry(true)
-  }
-
   const handleSelectVariant = (id: string) => {
     setMode('preset')
     setSelectedId(id)
@@ -117,8 +56,6 @@ export function NovaShellConfigurator() {
   const updateDimension = (key: 'width' | 'depth' | 'height', value: number) => {
     setCustomDimensions(prev => ({ ...prev, [key]: value }))
     if (mode !== 'custom') setMode('custom')
-    // When dimensions change, hide real geometry until new one loads
-    setShowRealGeometry(false)
   }
 
   const openPurchase = () => { setModalMode('purchase'); setIsModalOpen(true) }
@@ -164,15 +101,9 @@ END-ISO-10303-21;`
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
           <div id="novashell-viewer" className="lg:col-span-3">
-            {/* Seamless hybrid: show procedural instantly, replace with real when ready */}
-            {mode === 'custom' && showRealGeometry && geometryData && !geometryError ? (
-              <div className="transition-opacity duration-500">
-                <OnshapeGeometry
-                  geometryData={geometryData}
-                  isLoading={isLoadingGeometry}
-                  error={geometryError}
-                />
-              </div>
+            {/* Use static GLTF model in Custom mode for reliability */}
+            {mode === 'custom' ? (
+              <StaticCaseViewer />
             ) : (
               <ThreeDViewer variant={activeVariant} />
             )}
@@ -230,38 +161,12 @@ END-ISO-10303-21;`
               {/* Custom Size Controls */}
               {mode === 'custom' && (
                 <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
-                      <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
-                    </div>
-                    <button
-                      onClick={handleRefreshGeometry}
-                      disabled={isLoadingGeometry}
-                      className="flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white transition hover:bg-white/5 disabled:opacity-50"
-                    >
-                      <RefreshCw className={`h-3.5 w-3.5 ${isLoadingGeometry ? 'animate-spin' : ''}`} />
-                      Refresh
-                    </button>
+                  <div className="mb-4">
+                    <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
+                    <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
                   </div>
 
-                  {/* Geometry Status */}
-                  <div className="mb-4 text-xs">
-                    {isLoadingGeometry && !showRealGeometry && (
-                      <div className="text-amber-400">Loading precise preview…</div>
-                    )}
-                    {showRealGeometry && geometryData && !isLoadingGeometry && (
-                      <div className="text-emerald-400">Using real Onshape geometry</div>
-                    )}
-                    {geometryError && (
-                      <div className="text-red-400">Could not load precise preview</div>
-                    )}
-                    {!isLoadingGeometry && !showRealGeometry && !geometryError && (
-                      <div className="text-zinc-500">Using fast preview</div>
-                    )}
-                  </div>
-
-                  {/* Live Dimension Controls - id/name added for autofill/accessibility */}
+                  {/* Live Dimension Controls */}
                   <div className="space-y-5">
                     {(['width', 'depth', 'height'] as const).map((key) => {
                       const label = key === 'width' ? 'Width' : key === 'depth' ? 'Depth' : 'Height'
@@ -309,7 +214,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    Instant preview while precise Onshape geometry loads in the background.
+                    Dimensions update the preview. Using static model for reliability.
                   </div>
                 </div>
               )}
