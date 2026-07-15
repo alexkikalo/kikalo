@@ -7,14 +7,14 @@ import { PurchaseModal } from './PurchaseModal'
 import { variants, getVariantById, defaultVariantId, type NovaShellVariant } from '@/lib/variants'
 import { Download, MessageCircle, ShoppingCart, ArrowRight, Star } from 'lucide-react'
 
-// Default custom dimensions (reasonable starting point near Standard size)
-const DEFAULT_CUSTOM_DIMS = { width: 120, depth: 95, height: 45 }
+// Default custom dimensions in inches (near current Standard size)
+const DEFAULT_CUSTOM_DIMS = { width: 4.72, depth: 3.74, height: 1.77 }
 
-// Reasonable ranges for formed sheet metal enclosures
+// Reasonable ranges in inches
 const CUSTOM_RANGES = {
-  width: { min: 70, max: 250, step: 1 },
-  depth: { min: 50, max: 160, step: 1 },
-  height: { min: 25, max: 80, step: 1 },
+  width:  { min: 2.5,  max: 10.0, step: 0.01 },
+  depth:  { min: 2.0,  max: 6.5,  step: 0.01 },
+  height: { min: 1.0,  max: 3.5,  step: 0.01 },
 }
 
 export function NovaShellConfigurator() {
@@ -31,7 +31,7 @@ export function NovaShellConfigurator() {
 
   const selectedVariant = getVariantById(selectedId) || variants[0]
 
-  // Create a temporary variant object for custom sizes so ThreeDViewer can use it
+  // Create a temporary variant object for custom sizes (dimensions now in inches)
   const customVariant: NovaShellVariant = {
     id: 'custom',
     name: 'Custom NovaShell',
@@ -49,7 +49,7 @@ export function NovaShellConfigurator() {
   // The variant currently being previewed
   const activeVariant = mode === 'custom' ? customVariant : selectedVariant
 
-  // Debounced geometry fetching when in custom mode
+  // Debounced geometry fetching when in custom mode (now sends inches directly)
   useEffect(() => {
     if (mode !== 'custom') {
       setGeometryData(null)
@@ -63,9 +63,9 @@ export function NovaShellConfigurator() {
 
       try {
         const params = new URLSearchParams({
-          width: customDimensions.width.toString(),
-          depth: customDimensions.depth.toString(),
-          height: customDimensions.height.toString(),
+          width: customDimensions.width.toFixed(3),
+          depth: customDimensions.depth.toFixed(3),
+          height: customDimensions.height.toFixed(3),
         })
 
         const res = await fetch(`/api/onshape/geometry?${params.toString()}`)
@@ -83,7 +83,7 @@ export function NovaShellConfigurator() {
       } finally {
         setIsLoadingGeometry(false)
       }
-    }, 600) // Debounce
+    }, 600)
 
     return () => clearTimeout(timeout)
   }, [mode, customDimensions])
@@ -110,7 +110,6 @@ export function NovaShellConfigurator() {
   const openQuote = () => { setModalMode('quote'); setIsModalOpen(true) }
 
   const handleDownloadSTEP = (variant: NovaShellVariant) => {
-    // Clean placeholder STEP content (real files should be placed in /public/downloads/)
     const content = `ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('NovaShell ${variant.name} STEP export placeholder'),'2;1');
@@ -150,7 +149,6 @@ END-ISO-10303-21;`
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
           <div id="novashell-viewer" className="lg:col-span-3">
-            {/* Show real Onshape geometry when available in custom mode */}
             {mode === 'custom' && geometryData && !geometryError ? (
               <OnshapeGeometry
                 geometryData={geometryData}
@@ -203,7 +201,7 @@ END-ISO-10303-21;`
                             </div>
                             <div className="text-right font-mono text-xl font-semibold tabular-nums text-white">${variant.price}</div>
                           </div>
-                          <div className="mt-3 flex items-center justify-between text-[10px]"><div className="font-mono text-zinc-500">{variant.dimensions.width}×{variant.dimensions.depth}×{variant.dimensions.height} mm</div><div className="text-emerald-400/90">{variant.leadTime}</div></div>
+                          <div className="mt-3 flex items-center justify-between text-[10px]"><div className="font-mono text-zinc-500">{variant.dimensions.width}×{variant.dimensions.depth}×{variant.dimensions.height} in</div><div className="text-emerald-400/90">{variant.leadTime}</div></div>
                         </button>
                       )
                     })}
@@ -239,7 +237,7 @@ END-ISO-10303-21;`
                   <div className="space-y-5">
                     {(['width', 'depth', 'height'] as const).map((key) => {
                       const label = key === 'width' ? 'Width' : key === 'depth' ? 'Depth' : 'Height'
-                      const unit = 'mm'
+                      const unit = 'in'
                       const value = customDimensions[key]
                       const range = CUSTOM_RANGES[key]
 
@@ -247,7 +245,7 @@ END-ISO-10303-21;`
                         <div key={key}>
                           <div className="flex items-center justify-between mb-1.5">
                             <div className="text-sm font-medium text-white">{label}</div>
-                            <div className="font-mono text-sm tabular-nums text-white">{value} {unit}</div>
+                            <div className="font-mono text-sm tabular-nums text-white">{value.toFixed(2)} {unit}</div>
                           </div>
                           <div className="flex items-center gap-3">
                             <input
@@ -256,7 +254,7 @@ END-ISO-10303-21;`
                               max={range.max}
                               step={range.step}
                               value={value}
-                              onChange={(e) => updateDimension(key, parseInt(e.target.value))}
+                              onChange={(e) => updateDimension(key, parseFloat(e.target.value))}
                               className="flex-1 accent-white"
                             />
                             <input
@@ -265,7 +263,7 @@ END-ISO-10303-21;`
                               max={range.max}
                               step={range.step}
                               value={value}
-                              onChange={(e) => updateDimension(key, Math.max(range.min, Math.min(range.max, parseInt(e.target.value) || range.min)))}
+                              onChange={(e) => updateDimension(key, Math.max(range.min, Math.min(range.max, parseFloat(e.target.value) || range.min)))}
                               className="w-20 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-right font-mono text-sm text-white focus:border-white/60 focus:outline-none"
                             />
                           </div>
@@ -279,7 +277,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    Dimensions update the preview. A more precise version is loading in the background.
+                    Dimensions in inches. A more precise version is loading in the background.
                   </div>
                 </div>
               )}
@@ -288,7 +286,7 @@ END-ISO-10303-21;`
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
                 <div className="mb-4"><div className="text-xs tracking-[1.5px] text-zinc-500">SELECTED</div><div className="text-2xl font-semibold tracking-tight text-white">{activeVariant.name}</div></div>
                 <div className="mb-6 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                  <div><div className="text-[10px] text-zinc-500">EXTERNAL</div><div className="font-mono text-white">{activeVariant.dimensions.width} × {activeVariant.dimensions.depth} × {activeVariant.dimensions.height} mm</div></div>
+                  <div><div className="text-[10px] text-zinc-500">EXTERNAL</div><div className="font-mono text-white">{activeVariant.dimensions.width.toFixed(2)} × {activeVariant.dimensions.depth.toFixed(2)} × {activeVariant.dimensions.height.toFixed(2)} in</div></div>
                   <div><div className="text-[10px] text-zinc-500">MATERIAL / FINISH</div><div className="text-white">{activeVariant.material}<br />{activeVariant.finish}</div></div>
                   <div><div className="text-[10px] text-zinc-500">EST. WEIGHT</div><div className="text-white">{activeVariant.estWeight}</div></div>
                   <div><div className="text-[10px] text-zinc-500">LEAD TIME</div><div className="font-medium text-emerald-400">{activeVariant.leadTime}</div></div>
