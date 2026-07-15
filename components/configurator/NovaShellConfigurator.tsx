@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { ThreeDViewer } from './ThreeDViewer'
+import { OnshapeGeometry } from './OnshapeGeometry'
 import { PurchaseModal } from './PurchaseModal'
 import { variants, getVariantById, defaultVariantId, type NovaShellVariant } from '@/lib/variants'
 import { Download, MessageCircle, ShoppingCart, ArrowRight, Star } from 'lucide-react'
@@ -149,7 +150,17 @@ END-ISO-10303-21;`
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
           <div id="novashell-viewer" className="lg:col-span-3">
-            <ThreeDViewer variant={activeVariant} />
+            {/* Show real Onshape geometry when available in custom mode */}
+            {mode === 'custom' && geometryData && !geometryError ? (
+              <OnshapeGeometry
+                geometryData={geometryData}
+                isLoading={isLoadingGeometry}
+                error={geometryError}
+              />
+            ) : (
+              <ThreeDViewer variant={activeVariant} />
+            )}
+
             <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs text-zinc-500">
               <div>6061-T6 Aluminum</div><div>Type II Anodize</div><div>Precision CNC + Laser</div><div>Modular plate design</div>
             </div>
@@ -208,7 +219,7 @@ END-ISO-10303-21;`
                     <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
                   </div>
 
-                  {/* Geometry Status - Cleaned up text */}
+                  {/* Geometry Status */}
                   <div className="mb-4 text-xs">
                     {isLoadingGeometry && (
                       <div className="text-amber-400">Loading precise preview…</div>
