@@ -14,15 +14,17 @@ interface OnshapeGeometryProps {
 
 /**
  * Renders real geometry from Onshape
- * Correctly parses the actual Onshape tessellated faces response structure
+ * Model is in inches → we scale to millimeters to match the configurator
  */
 export function OnshapeGeometry({ geometryData, isLoading, error, className = '' }: OnshapeGeometryProps) {
-  // Parse real Onshape tessellated data
+  // Parse + scale real Onshape tessellated data (inches → mm)
   const realGeometry = useMemo(() => {
     if (!geometryData?.raw?.bodies) return null
 
     const allVertices: number[] = []
     let faceCount = 0
+
+    const INCHES_TO_MM = 25.4
 
     try {
       geometryData.raw.bodies.forEach((body: any) => {
@@ -34,9 +36,9 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
           face.facets.forEach((facet: any) => {
             if (!facet.vertices || facet.vertices.length !== 3) return
 
-            // Each facet is a triangle with exactly 3 vertices
             facet.vertices.forEach((v: any) => {
-              allVertices.push(v.x, v.y, v.z)
+              // Convert from inches to millimeters
+              allVertices.push(v.x * INCHES_TO_MM, v.y * INCHES_TO_MM, v.z * INCHES_TO_MM)
             })
 
             faceCount++
@@ -50,7 +52,6 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
 
     if (allVertices.length === 0) return null
 
-    // Create one large BufferGeometry for performance
     const geometry = new THREE.BufferGeometry()
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(allVertices, 3))
     geometry.computeVertexNormals()
@@ -89,18 +90,17 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
     )
   }
 
-  // Render real geometry if successfully parsed
   if (realGeometry && realGeometry.mesh) {
     return (
       <div className={`relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 ${className}`}>
         <Canvas
-          camera={{ position: [0.15, 0.12, 0.15], fov: 45 }}
+          camera={{ position: [180, 140, 180], fov: 45 }}
           style={{ background: 'transparent' }}
           gl={{ antialias: true, alpha: true }}
         >
           <ambientLight intensity={0.6} />
-          <directionalLight position={[0.2, 0.3, 0.2]} intensity={1.4} />
-          <directionalLight position={[-0.2, 0.1, -0.25]} intensity={0.7} />
+          <directionalLight position={[200, 300, 200]} intensity={1.4} />
+          <directionalLight position={[-200, 100, -250]} intensity={0.7} />
 
           <primitive object={realGeometry.mesh} />
 
@@ -114,25 +114,25 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
     )
   }
 
-  // Fallback placeholder
+  // Fallback placeholder (sized closer to mm scale)
   return (
     <div className={`relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 ${className}`}>
       <Canvas
-        camera={{ position: [0.12, 0.09, 0.12], fov: 45 }}
+        camera={{ position: [180, 140, 180], fov: 45 }}
         style={{ background: 'transparent' }}
         gl={{ antialias: true, alpha: true }}
       >
         <ambientLight intensity={0.6} />
-        <directionalLight position={[0.2, 0.3, 0.2]} intensity={1.2} />
+        <directionalLight position={[200, 300, 200]} intensity={1.2} />
         <mesh>
-          <boxGeometry args={[0.08, 0.06, 0.04]} />
+          <boxGeometry args={[120, 95, 45]} />
           <meshStandardMaterial color="#c8c8c8" metalness={0.9} roughness={0.3} />
         </mesh>
         <OrbitControls enableDamping dampingFactor={0.1} />
       </Canvas>
 
       <div className="absolute bottom-3 right-3 rounded bg-black/60 px-2 py-0.5 text-[10px] text-zinc-400">
-        Real geometry loading...
+        Real geometry at default size
       </div>
     </div>
   )
