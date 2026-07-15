@@ -14,43 +14,33 @@ interface OnshapeGeometryProps {
 
 /**
  * Renders real geometry from Onshape
- * This version includes basic support for real tessellated data
+ * Correctly parses the actual Onshape tessellated faces response structure
  */
 export function OnshapeGeometry({ geometryData, isLoading, error, className = '' }: OnshapeGeometryProps) {
-  // Try to build real meshes from Onshape data
-  const realMeshes = useMemo(() => {
+  // Parse real Onshape tessellated data
+  const realGeometry = useMemo(() => {
     if (!geometryData?.raw?.bodies) return null
 
-    const meshes: THREE.Mesh[] = []
+    const allVertices: number[] = []
+    let faceCount = 0
 
     try {
-      geometryData.raw.bodies.forEach((body: any, bodyIndex: number) => {
+      geometryData.raw.bodies.forEach((body: any) => {
         if (!body.faces) return
 
-        body.faces.forEach((face: any, faceIndex: number) => {
-          if (!face.vertices || face.vertices.length === 0) return
+        body.faces.forEach((face: any) => {
+          if (!face.facets) return
 
-          // Create geometry from vertices
-          const vertices = new Float32Array(face.vertices.flat())
-          const geometry = new THREE.BufferGeometry()
-          geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
+          face.facets.forEach((facet: any) => {
+            if (!facet.vertices || facet.vertices.length !== 3) return
 
-          // Create indices if available
-          if (face.indices && face.indices.length > 0) {
-            geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(face.indices.flat()), 1))
-          }
+            // Each facet is a triangle with exactly 3 vertices
+            facet.vertices.forEach((v: any) => {
+              allVertices.push(v.x, v.y, v.z)
+            })
 
-          geometry.computeVertexNormals()
-
-          const material = new THREE.MeshStandardMaterial({
-            color: bodyIndex === 0 ? '#c8c8c8' : '#a8a8a8',
-            metalness: 0.85,
-            roughness: 0.35,
-            side: THREE.DoubleSide,
+            faceCount++
           })
-
-          const mesh = new THREE.Mesh(geometry, material)
-          meshes.push(mesh)
         })
       })
     } catch (e) {
@@ -58,7 +48,27 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
       return null
     }
 
-    return meshes.length > 0 ? meshes : null
+    if (allVertices.length === 0) return null
+
+    // Create one large BufferGeometry for performance
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(allVertices, 3))
+    geometry.computeVertexNormals()
+
+    const material = new THREE.MeshStandardMaterial({
+      color: '#c8c8c8',
+      metalness: 0.85,
+      roughness: 0.35,
+      side: THREE.DoubleSide,
+    })
+
+    const mesh = new THREE.Mesh(geometry, material)
+
+    return {
+      mesh,
+      faceCount,
+      vertexCount: allVertices.length / 3,
+    }
   }, [geometryData])
 
   if (isLoading) {
@@ -79,45 +89,43 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
     )
   }
 
-  // Render real geometry if available
-  if (realMeshes && realMeshes.length > 0) {
+  // Render real geometry if successfully parsed
+  if (realGeometry && realGeometry.mesh) {
     return (
       <div className={`relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 ${className}`}>
         <Canvas
-          camera={{ position: [4, 3, 4], fov: 45 }}
+          camera={{ position: [0.15, 0.12, 0.15], fov: 45 }}
           style={{ background: 'transparent' }}
           gl={{ antialias: true, alpha: true }}
         >
-          <ambientLight intensity={0.55} />
-          <directionalLight position={[8, 12, 6]} intensity={1.3} />
-          <directionalLight position={[-6, 4, -8]} intensity={0.6} />
+          <ambientLight intensity={0.6} />
+          <directionalLight position={[0.2, 0.3, 0.2]} intensity={1.4} />
+          <directionalLight position={[-0.2, 0.1, -0.25]} intensity={0.7} />
 
-          {realMeshes.map((mesh, index) => (
-            <primitive key={index} object={mesh} />
-          ))}
+          <primitive object={realGeometry.mesh} />
 
           <OrbitControls enableDamping dampingFactor={0.12} />
         </Canvas>
 
         <div className="absolute bottom-3 right-3 rounded bg-black/60 px-2 py-0.5 text-[10px] text-emerald-400">
-          Real Onshape geometry
+          Real Onshape geometry ({realGeometry.faceCount.toLocaleString()} faces)
         </div>
       </div>
     )
   }
 
-  // Fallback placeholder while real data is not yet available
+  // Fallback placeholder
   return (
     <div className={`relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 ${className}`}>
       <Canvas
-        camera={{ position: [3, 2, 3], fov: 45 }}
+        camera={{ position: [0.12, 0.09, 0.12], fov: 45 }}
         style={{ background: 'transparent' }}
         gl={{ antialias: true, alpha: true }}
       >
         <ambientLight intensity={0.6} />
-        <directionalLight position={[5, 10, 5]} intensity={1.2} />
+        <directionalLight position={[0.2, 0.3, 0.2]} intensity={1.2} />
         <mesh>
-          <boxGeometry args={[1, 1, 1]} />
+          <boxGeometry args={[0.08, 0.06, 0.04]} />
           <meshStandardMaterial color="#c8c8c8" metalness={0.9} roughness={0.3} />
         </mesh>
         <OrbitControls enableDamping dampingFactor={0.1} />
