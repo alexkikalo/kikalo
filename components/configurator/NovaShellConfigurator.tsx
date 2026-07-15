@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ThreeDViewer } from './ThreeDViewer'
 import { PurchaseModal } from './PurchaseModal'
 import { variants, getVariantById, defaultVariantId, type NovaShellVariant } from '@/lib/variants'
-import { Download, MessageCircle, ShoppingCart, ArrowRight, Star, ExternalLink } from 'lucide-react'
+import { Download, MessageCircle, ShoppingCart, ArrowRight, Star } from 'lucide-react'
 
 // Default custom dimensions (reasonable starting point near Standard size)
 const DEFAULT_CUSTOM_DIMS = { width: 120, depth: 95, height: 45 }
@@ -16,15 +16,17 @@ const CUSTOM_RANGES = {
   height: { min: 25, max: 80, step: 1 },
 }
 
-// Your Onshape document base URL (we can enhance this later to include configuration)
-const ONSHAPE_BASE_URL = 'https://cad.onshape.com/documents/c0783d484462993857a94bb1/w/d4a9f4803f10a4f65f2f8cf3/e/7b6ee8c5ab24994b708ff864'
-
 export function NovaShellConfigurator() {
   const [selectedId, setSelectedId] = useState(defaultVariantId)
   const [mode, setMode] = useState<'preset' | 'custom'>('preset')
   const [customDimensions, setCustomDimensions] = useState(DEFAULT_CUSTOM_DIMS)
   const [modalMode, setModalMode] = useState<'purchase' | 'quote'>('purchase')
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // Onshape geometry fetching state
+  const [isLoadingGeometry, setIsLoadingGeometry] = useState(false)
+  const [geometryData, setGeometryData] = useState<any>(null)
+  const [geometryError, setGeometryError] = useState<string | null>(null)
 
   const selectedVariant = getVariantById(selectedId) || variants[0]
 
@@ -46,6 +48,45 @@ export function NovaShellConfigurator() {
   // The variant currently being previewed
   const activeVariant = mode === 'custom' ? customVariant : selectedVariant
 
+  // Debounced geometry fetching when in custom mode
+  useEffect(() => {
+    if (mode !== 'custom') {
+      setGeometryData(null)
+      setGeometryError(null)
+      return
+    }
+
+    const timeout = setTimeout(async () => {
+      setIsLoadingGeometry(true)
+      setGeometryError(null)
+
+      try {
+        const params = new URLSearchParams({
+          width: customDimensions.width.toString(),
+          depth: customDimensions.depth.toString(),
+          height: customDimensions.height.toString(),
+        })
+
+        const res = await fetch(`/api/onshape/geometry?${params.toString()}`)
+        const data = await res.json()
+
+        if (data.success) {
+          setGeometryData(data)
+          console.log('Onshape geometry response:', data)
+        } else {
+          setGeometryError(data.error || 'Failed to load geometry')
+        }
+      } catch (err) {
+        setGeometryError('Network error while loading geometry')
+        console.error(err)
+      } finally {
+        setIsLoadingGeometry(false)
+      }
+    }, 600) // Debounce
+
+    return () => clearTimeout(timeout)
+  }, [mode, customDimensions])
+
   const handleSelectVariant = (id: string) => {
     setMode('preset')
     setSelectedId(id)
@@ -62,12 +103,6 @@ export function NovaShellConfigurator() {
   const updateDimension = (key: 'width' | 'depth' | 'height', value: number) => {
     setCustomDimensions(prev => ({ ...prev, [key]: value }))
     if (mode !== 'custom') setMode('custom')
-  }
-
-  const openInOnshape = () => {
-    // For now we open the base document.
-    // Later we can enhance this to include configuration parameters.
-    window.open(ONSHAPE_BASE_URL, '_blank')
   }
 
   const openPurchase = () => { setModalMode('purchase'); setIsModalOpen(true) }
@@ -165,21 +200,28 @@ END-ISO-10303-21;`
                 </div>
               )}
 
-              {/* Custom Size Controls + Onshape Button */}
+              {/* Custom Size Controls */}
               {mode === 'custom' && (
                 <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
-                  <div className="mb-4 flex items-start justify-between">
-                    <div>
-                      <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
-                      <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
-                    </div>
-                    <button
-                      onClick={openInOnshape}
-                      className="flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white transition hover:bg-white/5"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                      View in Onshape
-                    </button>
+                  <div className="mb-4">
+                    <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
+                    <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
+                  </div>
+
+                  {/* Geometry Status */}
+                  <div className="mb-4 text-xs">
+                    {isLoadingGeometry && (
+                      <div className="text-amber-400">Loading real geometry from Onshape...</div>
+                    )}
+                    {geometryData && !isLoadingGeometry && (
+                      <div className="text-emerald-400">Real geometry loaded ({geometryData.facesCount || 0} faces)</div>
+                    )}
+                    {geometryError && (
+                      <div className="text-red-400">Geometry error: {geometryError}</div>
+                    )}
+                    {!isLoadingGeometry && !geometryData && !geometryError && (
+                      <div className="text-zinc-500">Using approximate preview (real geometry loading...)</div>
+                    )}
                   </div>
 
                   {/* Live Dimension Controls */}
@@ -226,7 +268,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    These dimensions update the live preview. Click “View in Onshape” to see the exact parametric model.
+                    Dimensions update the preview. Real Onshape geometry is being loaded in the background.
                   </div>
                 </div>
               )}
