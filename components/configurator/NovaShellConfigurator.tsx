@@ -208,19 +208,19 @@ END-ISO-10303-21;`
                     <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
                   </div>
 
-                  {/* Geometry Status */}
+                  {/* Geometry Status - Cleaned up text */}
                   <div className="mb-4 text-xs">
                     {isLoadingGeometry && (
-                      <div className="text-amber-400">Loading real geometry from Onshape...</div>
+                      <div className="text-amber-400">Loading precise preview…</div>
                     )}
                     {geometryData && !isLoadingGeometry && (
-                      <div className="text-emerald-400">Real geometry loaded ({geometryData.facesCount || 0} faces)</div>
+                      <div className="text-emerald-400">Precise preview ready</div>
                     )}
                     {geometryError && (
-                      <div className="text-red-400">Geometry error: {geometryError}</div>
+                      <div className="text-red-400">Could not load precise preview</div>
                     )}
                     {!isLoadingGeometry && !geometryData && !geometryError && (
-                      <div className="text-zinc-500">Using approximate preview (real geometry loading...)</div>
+                      <div className="text-zinc-500">Using fast preview</div>
                     )}
                   </div>
 
@@ -268,7 +268,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    Dimensions update the preview. Real Onshape geometry is being loaded in the background.
+                    Dimensions update the preview. A more precise version is loading in the background.
                   </div>
                 </div>
               )}
