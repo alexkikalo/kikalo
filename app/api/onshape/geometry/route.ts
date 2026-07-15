@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 
 /**
- * Fetch tessellated geometry from Onshape with configuration
- * GET /api/onshape/geometry?width=xx&depth=yy&height=zz (in mm)
+ * Fetch tessellated geometry from Onshape (values in inches)
+ * GET /api/onshape/geometry?width=xx&depth=yy&height=zz
  */
 export async function GET(request: Request) {
   const accessKey = process.env.ONSHAPE_NOVASHELL_ACCESS_KEY
@@ -16,21 +16,14 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
-  const widthMm = parseFloat(searchParams.get('width') || '120')
-  const depthMm = parseFloat(searchParams.get('depth') || '95')
-  const heightMm = parseFloat(searchParams.get('height') || '45')
+  const width = parseFloat(searchParams.get('width') || '4.72')
+  const depth = parseFloat(searchParams.get('depth') || '3.74')
+  const height = parseFloat(searchParams.get('height') || '1.77')
 
   const credentials = Buffer.from(`${accessKey}:${secretKey}`).toString('base64')
 
-  // Convert mm to inches (model is in inches)
-  const INCH = 25.4
-  const widthIn = (widthMm / INCH).toFixed(3)
-  const depthIn = (depthMm / INCH).toFixed(3)
-  const heightIn = (heightMm / INCH).toFixed(3)
-
-  // Build configuration string for Onshape
-  // Format: Width=5.500;Depth=3.740;Height=1.770
-  const configString = `Width=${widthIn};Depth=${depthIn};Height=${heightIn}`
+  // Build configuration string (values already in inches)
+  const configString = `Width=${width.toFixed(3)};Depth=${depth.toFixed(3)};Height=${height.toFixed(3)}`
   const encodedConfig = encodeURIComponent(configString)
 
   try {
@@ -60,9 +53,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Geometry fetched with configuration',
-      dimensionsMm: { width: widthMm, depth: depthMm, height: heightMm },
-      dimensionsIn: { width: widthIn, depth: depthIn, height: heightIn },
+      message: 'Geometry fetched',
+      dimensionsIn: { width, depth, height },
       configString,
       facesCount: data.bodies?.[0]?.faces?.length || 0,
       raw: data,
