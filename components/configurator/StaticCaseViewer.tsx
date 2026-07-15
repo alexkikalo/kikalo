@@ -3,16 +3,43 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, useGLTF, Center } from '@react-three/drei'
 
-/**
- * Loads the static case.gltf model
- * Place the file at: public/models/case.gltf
- */
-function CaseModel() {
-  const { scene } = useGLTF('/models/case.gltf')
-  return <primitive object={scene} />
+interface StaticCaseViewerProps {
+  dimensions?: {
+    width: number
+    depth: number
+    height: number
+  }
 }
 
-export function StaticCaseViewer() {
+/**
+ * Loads case.gltf and applies real-time scaling based on dimensions (in inches)
+ * Original model is assumed to be exported at ~4.72 x 3.74 x 1.77 inches
+ */
+function CaseModel({ dimensions }: { dimensions?: { width: number; depth: number; height: number } }) {
+  const { scene } = useGLTF('/models/case.gltf')
+
+  // Original exported size (in inches) - adjust these if your export was different
+  const ORIGINAL = { width: 4.72, depth: 3.74, height: 1.77 }
+
+  let scaleX = 1
+  let scaleY = 1
+  let scaleZ = 1
+
+  if (dimensions) {
+    scaleX = dimensions.width / ORIGINAL.width
+    scaleY = dimensions.height / ORIGINAL.height
+    scaleZ = dimensions.depth / ORIGINAL.depth
+  }
+
+  return (
+    <primitive
+      object={scene}
+      scale={[scaleX, scaleY, scaleZ]}
+    />
+  )
+}
+
+export function StaticCaseViewer({ dimensions }: StaticCaseViewerProps) {
   return (
     <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950">
       <Canvas
@@ -25,7 +52,7 @@ export function StaticCaseViewer() {
         <directionalLight position={[-6, 4, -8]} intensity={0.6} />
 
         <Center>
-          <CaseModel />
+          <CaseModel dimensions={dimensions} />
         </Center>
 
         <OrbitControls enableDamping dampingFactor={0.12} />
