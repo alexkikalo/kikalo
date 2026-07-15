@@ -27,6 +27,7 @@ export function NovaShellConfigurator() {
   const [isLoadingGeometry, setIsLoadingGeometry] = useState(false)
   const [geometryData, setGeometryData] = useState<any>(null)
   const [geometryError, setGeometryError] = useState<string | null>(null)
+  const [showRealGeometry, setShowRealGeometry] = useState(false)
 
   const selectedVariant = getVariantById(selectedId) || variants[0]
 
@@ -46,12 +47,12 @@ export function NovaShellConfigurator() {
 
   const activeVariant = mode === 'custom' ? customVariant : selectedVariant
 
-  // Fetch geometry function (extracted for manual refresh)
+  // Fetch geometry (background)
   const fetchGeometry = useCallback(async (force = false) => {
     if (mode !== 'custom') return
 
     setIsLoadingGeometry(true)
-    setGeometryError(null)
+    if (!force) setGeometryError(null)
 
     try {
       const params = new URLSearchParams({
@@ -65,32 +66,39 @@ export function NovaShellConfigurator() {
       })
       const data = await res.json()
 
-      if (data.success) {
+      if (data.success && data.raw?.bodies?.length > 0) {
         setGeometryData(data)
-        console.log('Onshape geometry response:', data)
+        setShowRealGeometry(true)
+        console.log('Onshape geometry loaded successfully')
       } else {
-        setGeometryError(data.error || 'Failed to load geometry')
+        // No real geometry available — stay on procedural preview
+        setGeometryData(null)
+        setShowRealGeometry(false)
+        if (data.error) setGeometryError(data.error)
       }
     } catch (err) {
-      setGeometryError('Network error while loading geometry')
+      setGeometryError('Network error')
+      setShowRealGeometry(false)
       console.error(err)
     } finally {
       setIsLoadingGeometry(false)
     }
   }, [mode, customDimensions])
 
-  // Auto-fetch when dimensions or mode change
+  // Auto-fetch when in custom mode
   useEffect(() => {
     if (mode === 'custom') {
-      const timeout = setTimeout(() => fetchGeometry(), 600)
+      const timeout = setTimeout(() => fetchGeometry(), 700)
       return () => clearTimeout(timeout)
     } else {
       setGeometryData(null)
+      setShowRealGeometry(false)
       setGeometryError(null)
     }
   }, [mode, customDimensions, fetchGeometry])
 
   const handleRefreshGeometry = () => {
+    setShowRealGeometry(false)
     fetchGeometry(true)
   }
 
@@ -109,6 +117,8 @@ export function NovaShellConfigurator() {
   const updateDimension = (key: 'width' | 'depth' | 'height', value: number) => {
     setCustomDimensions(prev => ({ ...prev, [key]: value }))
     if (mode !== 'custom') setMode('custom')
+    // When dimensions change, hide real geometry until new one loads
+    setShowRealGeometry(false)
   }
 
   const openPurchase = () => { setModalMode('purchase'); setIsModalOpen(true) }
@@ -154,12 +164,15 @@ END-ISO-10303-21;`
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
           <div id="novashell-viewer" className="lg:col-span-3">
-            {mode === 'custom' && geometryData && !geometryError ? (
-              <OnshapeGeometry
-                geometryData={geometryData}
-                isLoading={isLoadingGeometry}
-                error={geometryError}
-              />
+            {/* Seamless hybrid: show procedural instantly, replace with real when ready */}
+            {mode === 'custom' && showRealGeometry && geometryData && !geometryError ? (
+              <div className="transition-opacity duration-500">
+                <OnshapeGeometry
+                  geometryData={geometryData}
+                  isLoading={isLoadingGeometry}
+                  error={geometryError}
+                />
+              </div>
             ) : (
               <ThreeDViewer variant={activeVariant} />
             )}
@@ -234,16 +247,16 @@ END-ISO-10303-21;`
 
                   {/* Geometry Status */}
                   <div className="mb-4 text-xs">
-                    {isLoadingGeometry && (
+                    {isLoadingGeometry && !showRealGeometry && (
                       <div className="text-amber-400">Loading precise preview…</div>
                     )}
-                    {geometryData && !isLoadingGeometry && (
-                      <div className="text-emerald-400">Precise preview ready</div>
+                    {showRealGeometry && geometryData && !isLoadingGeometry && (
+                      <div className="text-emerald-400">Using real Onshape geometry</div>
                     )}
                     {geometryError && (
                       <div className="text-red-400">Could not load precise preview</div>
                     )}
-                    {!isLoadingGeometry && !geometryData && !geometryError && (
+                    {!isLoadingGeometry && !showRealGeometry && !geometryError && (
                       <div className="text-zinc-500">Using fast preview</div>
                     )}
                   </div>
@@ -292,7 +305,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    Dimensions in inches. Real geometry can sometimes need a manual refresh.
+                    Instant preview while precise Onshape geometry loads in the background.
                   </div>
                 </div>
               )}
