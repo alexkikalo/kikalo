@@ -9,6 +9,13 @@ import { Download, MessageCircle, ShoppingCart, ArrowRight, Star } from 'lucide-
 // Default custom dimensions (reasonable starting point near Standard size)
 const DEFAULT_CUSTOM_DIMS = { width: 120, depth: 95, height: 45 }
 
+// Reasonable ranges for formed sheet metal enclosures
+const CUSTOM_RANGES = {
+  width: { min: 70, max: 250, step: 1 },
+  depth: { min: 50, max: 160, step: 1 },
+  height: { min: 25, max: 80, step: 1 },
+}
+
 export function NovaShellConfigurator() {
   const [selectedId, setSelectedId] = useState(defaultVariantId)
   const [isCustomMode, setIsCustomMode] = useState(false)
@@ -47,6 +54,12 @@ export function NovaShellConfigurator() {
 
   const enterCustomMode = () => {
     setIsCustomMode(true)
+  }
+
+  // Update a single dimension
+  const updateDimension = (key: 'width' | 'depth' | 'height', value: number) => {
+    setCustomDimensions(prev => ({ ...prev, [key]: value }))
+    if (!isCustomMode) setIsCustomMode(true)
   }
 
   const openPurchase = () => { setModalMode('purchase'); setIsModalOpen(true) }
@@ -123,29 +136,66 @@ END-ISO-10303-21;`
                 </div>
               </div>
 
-              {/* Custom Size Section - Stage 1 placeholder */}
+              {/* Custom Size - Live Controls */}
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
-                    <div className="text-xs text-zinc-500">Live preview • Made to order</div>
+                    <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
                   </div>
                   <button
                     onClick={enterCustomMode}
                     className={`px-4 py-1.5 text-xs font-medium rounded-full transition ${isCustomMode ? 'bg-white text-black' : 'border border-white/30 hover:bg-white/5'}`}
                   >
-                    {isCustomMode ? 'ACTIVE' : 'DESIGN'}
+                    {isCustomMode ? 'LIVE' : 'DESIGN'}
                   </button>
                 </div>
 
-                {isCustomMode && (
-                  <div className="text-sm text-zinc-400">
-                    Custom dimension controls coming in the next update. Current preview uses default values.
-                  </div>
-                )}
+                {/* Live Dimension Controls */}
+                <div className="space-y-5">
+                  {(['width', 'depth', 'height'] as const).map((key) => {
+                    const label = key === 'width' ? 'Width' : key === 'depth' ? 'Depth' : 'Height'
+                    const unit = 'mm'
+                    const value = customDimensions[key]
+                    const range = CUSTOM_RANGES[key]
 
-                <div className="mt-4 text-[10px] text-zinc-500">
-                  Width × Depth × Height in mm. We will add live sliders next.
+                    return (
+                      <div key={key}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="text-sm font-medium text-white">{label}</div>
+                          <div className="font-mono text-sm tabular-nums text-white">{value} {unit}</div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="range"
+                            min={range.min}
+                            max={range.max}
+                            step={range.step}
+                            value={value}
+                            onChange={(e) => updateDimension(key, parseInt(e.target.value))}
+                            className="flex-1 accent-white"
+                          />
+                          <input
+                            type="number"
+                            min={range.min}
+                            max={range.max}
+                            step={range.step}
+                            value={value}
+                            onChange={(e) => updateDimension(key, Math.max(range.min, Math.min(range.max, parseInt(e.target.value) || range.min)))}
+                            className="w-20 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-right font-mono text-sm text-white focus:border-white/60 focus:outline-none"
+                          />
+                        </div>
+                        <div className="mt-0.5 flex justify-between text-[10px] text-zinc-500">
+                          <div>{range.min}</div>
+                          <div>{range.max}</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="mt-5 text-[10px] text-zinc-500">
+                  These dimensions drive the live 3D preview. Final manufacturing uses your Onshape model.
                 </div>
               </div>
 
