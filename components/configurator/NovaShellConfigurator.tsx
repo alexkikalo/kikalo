@@ -101,9 +101,9 @@ END-ISO-10303-21;`
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
           <div id="novashell-viewer" className="lg:col-span-3">
-            {/* Use static GLTF model in Custom mode for reliability */}
+            {/* Static GLTF with real-time scaling in Custom mode */}
             {mode === 'custom' ? (
-              <StaticCaseViewer />
+              <StaticCaseViewer dimensions={customDimensions} />
             ) : (
               <ThreeDViewer variant={activeVariant} />
             )}
@@ -214,7 +214,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    Dimensions update the preview. Using static model for reliability.
+                    Dimensions update the preview in real time.
                   </div>
                 </div>
               )}
@@ -235,7 +235,7 @@ END-ISO-10303-21;`
                     <button onClick={() => handleDownloadSTEP(activeVariant)} className="flex items-center justify-center gap-2 rounded-2xl border border-zinc-700 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-900 active:bg-zinc-950"><Download className="h-4 w-4" /> DOWNLOAD STEP</button>
                     <button onClick={openQuote} className="flex items-center justify-center gap-2 rounded-2xl border border-white/20 py-3.5 text-sm font-medium text-white transition hover:bg-white/5"><MessageCircle className="h-4 w-4" /> REQUEST CUSTOM</button>
                   </div>
-                </div>
+                </data>
                 <p className="mt-4 text-center text-[10px] text-zinc-500">Prices in USD • Volume discounts available • Made in USA</p>
               </div>
             </div>
