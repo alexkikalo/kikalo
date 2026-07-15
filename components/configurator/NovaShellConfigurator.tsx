@@ -94,7 +94,7 @@ END-ISO-10303-21;`
 
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
-          <div id="novashell-viewer" className="lg:col-span-3 min-h-[480px]">
+          <div id="novashell-viewer" className="lg:col-span-3 lg:min-h-[480px]">
             {/* Static GLTF with real-time scaling in Custom mode */}
             {mode === 'custom' ? (
               <StaticCaseViewer dimensions={customDimensions} />
