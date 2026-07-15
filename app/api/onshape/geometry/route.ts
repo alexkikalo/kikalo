@@ -1,11 +1,8 @@
 import { NextResponse } from 'next/server'
 
 /**
- * Fetch tessellated geometry from Onshape
- * GET /api/onshape/geometry
- *
- * Query params (future):
- * - width, depth, height: custom dimensions
+ * Fetch tessellated geometry from Onshape with configuration
+ * GET /api/onshape/geometry?width=xx&depth=yy&height=zz (in mm)
  */
 export async function GET(request: Request) {
   const accessKey = process.env.ONSHAPE_NOVASHELL_ACCESS_KEY
@@ -19,24 +16,25 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
-  const width = searchParams.get('width')
-  const depth = searchParams.get('depth')
-  const height = searchParams.get('height')
+  const widthMm = parseFloat(searchParams.get('width') || '120')
+  const depthMm = parseFloat(searchParams.get('depth') || '95')
+  const heightMm = parseFloat(searchParams.get('height') || '45')
 
   const credentials = Buffer.from(`${accessKey}:${secretKey}`).toString('base64')
 
-  // Build configuration string if dimensions are provided
-  // Note: This assumes your model uses Configuration parameters.
-  // If using Variables, we may need a different approach.
-  let configurationParam = ''
-  if (width && depth && height) {
-    // Example encoding - adjust based on your actual parameter IDs
-    configurationParam = `?configuration=Width%3D${width}%3BDepth%3D${depth}%3BHeight%3D${height}`
-  }
+  // Convert mm to inches (model is in inches)
+  const INCH = 25.4
+  const widthIn = (widthMm / INCH).toFixed(3)
+  const depthIn = (depthMm / INCH).toFixed(3)
+  const heightIn = (heightMm / INCH).toFixed(3)
+
+  // Build configuration string for Onshape
+  // Format: Width=5.500;Depth=3.740;Height=1.770
+  const configString = `Width=${widthIn};Depth=${depthIn};Height=${heightIn}`
+  const encodedConfig = encodeURIComponent(configString)
 
   try {
-    // Fetch tessellated faces (good for rendering)
-    const url = `https://cad.onshape.com/api/v6/partstudios/d/c0783d484462993857a94bb1/w/d4a9f4803f10a4f65f2f8cf3/e/7b6ee8c5ab24994b708ff864/tessellatedfaces${configurationParam}`
+    const url = `https://cad.onshape.com/api/v6/partstudios/d/c0783d484462993857a94bb1/w/d4a9f4803f10a4f65f2f8cf3/e/7b6ee8c5ab24994b708ff864/tessellatedfaces?configuration=${encodedConfig}`
 
     const response = await fetch(url, {
       method: 'GET',
@@ -62,11 +60,11 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Geometry fetched successfully',
-      hasConfiguration: !!configurationParam,
-      dimensions: { width, depth, height },
+      message: 'Geometry fetched with configuration',
+      dimensionsMm: { width: widthMm, depth: depthMm, height: heightMm },
+      dimensionsIn: { width: widthIn, depth: depthIn, height: heightIn },
+      configString,
       facesCount: data.bodies?.[0]?.faces?.length || 0,
-      // In production we would process and return simplified mesh data here
       raw: data,
     })
   } catch (error) {
