@@ -293,9 +293,9 @@ END-ISO-10303-21;`
       </div>
 
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 lg:gap-10">
           {/* Fixed-size preview frame */}
-          <div id="novashell-viewer" className="lg:col-span-3">
+          <div id="novashell-viewer" className="lg:col-span-2">
             <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl h-[380px] sm:h-[440px] md:h-[480px] lg:h-[520px]">
               {mode === 'custom' ? renderCustomPreview() : (
                 <ThreeDViewer variant={activeVariant} className="h-full w-full" />
@@ -341,7 +341,8 @@ END-ISO-10303-21;`
             )}
           </div>
 
-          <div className="lg:col-span-2">
+          {/* Controls Column */}
+          <div className="lg:col-span-1">
             <div className="sticky top-6 space-y-6">
               {/* Mode Toggle */}
               <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1">
@@ -625,7 +626,12 @@ END-ISO-10303-21;`
                   </div>
                 </>
               )}
+            </div>
+          </div>
 
+          {/* Checkout Column: Live price and purchase */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-6">
               {/* Selected / Summary Card */}
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
                 <div className="mb-4">
