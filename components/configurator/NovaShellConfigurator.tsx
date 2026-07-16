@@ -5,7 +5,7 @@ import { ThreeDViewer } from './ThreeDViewer'
 import { StaticCaseViewer } from './StaticCaseViewer'
 import { PurchaseModal } from './PurchaseModal'
 import { variants, getVariantById, defaultVariantId, type NovaShellVariant } from '@/lib/variants'
-import { Download, MessageCircle, ShoppingCart, ArrowRight, Star, RefreshCw } from 'lucide-react'
+import { Download, ShoppingCart, Star } from 'lucide-react'
 
 // Default custom dimensions in inches
 const DEFAULT_CUSTOM_DIMS = { width: 4.72, depth: 3.74, height: 1.77 }
@@ -87,23 +87,33 @@ END-ISO-10303-21;`
   return (
     <div className="w-full">
       <div className="mx-auto max-w-5xl px-6 pb-8 pt-12 text-center md:pt-16">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs tracking-[2px] text-zinc-400">MADE IN TEXAS • PREMIUM MODULAR ALUMINUM</div>
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs tracking-[2px] text-zinc-400">
+          MADE IN TEXAS • PREMIUM CUSTOM ALUMINUM
+        </div>
         <h1 className="mt-6 text-balance text-6xl font-semibold tracking-tighter text-white md:text-7xl">NovaShell</h1>
-        <p className="mx-auto mt-4 max-w-md text-xl text-zinc-400">Precision modular aluminum enclosures for makers, engineers, and OEMs.<br />Built to last. Ready to ship.</p>
+        <p className="mx-auto mt-4 max-w-md text-xl text-zinc-400">
+          Precision custom aluminum enclosures for makers, engineers, and OEMs.<br />
+          Built to last. Ready to ship.
+        </p>
       </div>
 
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
-          <div id="novashell-viewer" className="lg:col-span-3 lg:min-h-[480px]">
-            {/* Static GLTF with real-time scaling in Custom mode */}
-            {mode === 'custom' ? (
-              <StaticCaseViewer dimensions={customDimensions} />
-            ) : (
-              <ThreeDViewer variant={activeVariant} />
-            )}
+          {/* Fixed-size preview frame — same size for both Preset and Custom */}
+          <div id="novashell-viewer" className="lg:col-span-3">
+            <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl h-[380px] sm:h-[440px] md:h-[480px] lg:h-[520px]">
+              {mode === 'custom' ? (
+                <StaticCaseViewer dimensions={customDimensions} className="h-full w-full" />
+              ) : (
+                <ThreeDViewer variant={activeVariant} className="h-full w-full" />
+              )}
+            </div>
 
             <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs text-zinc-500">
-              <div>6061-T6 Aluminum</div><div>Type II Anodize</div><div>Precision CNC + Laser</div><div>Modular plate design</div>
+              <div>6061-T6 Aluminum</div>
+              <div>Type II Anodize</div>
+              <div>Precision CNC + Laser</div>
+              <div>Universal mounting plate</div>
             </div>
           </div>
 
@@ -136,15 +146,31 @@ END-ISO-10303-21;`
                     {variants.map((variant) => {
                       const isActive = variant.id === selectedId
                       return (
-                        <button key={variant.id} onClick={() => handleSelectVariant(variant.id)} className={`group w-full rounded-3xl border p-4 text-left transition-all active:scale-[0.985] ${isActive ? 'border-white/70 bg-zinc-900 shadow-xl' : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700 hover:bg-zinc-900/70'}`}>
+                        <button
+                          key={variant.id}
+                          onClick={() => handleSelectVariant(variant.id)}
+                          className={`group w-full rounded-3xl border p-4 text-left transition-all active:scale-[0.985] ${isActive ? 'border-white/70 bg-zinc-900 shadow-xl' : 'border-zinc-800 bg-zinc-950 hover:border-zinc-700 hover:bg-zinc-900/70'}`}
+                        >
                           <div className="flex items-start justify-between">
                             <div>
-                              <div className="flex items-center gap-2"><span className="font-semibold text-white">{variant.name}</span>{variant.popular && <span className="inline-flex items-center gap-px rounded bg-emerald-500/10 px-1.5 py-px text-[9px] font-medium text-emerald-400"><Star className="h-2.5 w-2.5" /> POPULAR</span>}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-white">{variant.name}</span>
+                                {variant.popular && (
+                                  <span className="inline-flex items-center gap-px rounded bg-emerald-500/10 px-1.5 py-px text-[9px] font-medium text-emerald-400">
+                                    <Star className="h-2.5 w-2.5" /> POPULAR
+                                  </span>
+                                )}
+                              </div>
                               <div className="mt-0.5 text-xs text-zinc-400 line-clamp-2 pr-2">{variant.description}</div>
                             </div>
                             <div className="text-right font-mono text-xl font-semibold tabular-nums text-white">${variant.price}</div>
                           </div>
-                          <div className="mt-3 flex items-center justify-between text-[10px]"><div className="font-mono text-zinc-500">{variant.dimensions.width}×{variant.dimensions.depth}×{variant.dimensions.height} in</div><div className="text-emerald-400/90">{variant.leadTime}</div></div>
+                          <div className="mt-3 flex items-center justify-between text-[10px]">
+                            <div className="font-mono text-zinc-500">
+                              {variant.dimensions.width}×{variant.dimensions.depth}×{variant.dimensions.height} mm
+                            </div>
+                            <div className="text-emerald-400/90">{variant.leadTime}</div>
+                          </div>
                         </button>
                       )
                     })}
@@ -215,21 +241,54 @@ END-ISO-10303-21;`
 
               {/* Selected / Summary Card */}
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
-                <div className="mb-4"><div className="text-xs tracking-[1.5px] text-zinc-500">SELECTED</div><div className="text-2xl font-semibold tracking-tight text-white">{activeVariant.name}</div></div>
-                <div className="mb-6 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                  <div><div className="text-[10px] text-zinc-500">EXTERNAL</div><div className="font-mono text-white">{activeVariant.dimensions.width.toFixed(2)} × {activeVariant.dimensions.depth.toFixed(2)} × {activeVariant.dimensions.height.toFixed(2)} in</div></div>
-                  <div><div className="text-[10px] text-zinc-500">MATERIAL / FINISH</div><div className="text-white">{activeVariant.material}<br />{activeVariant.finish}</div></div>
-                  <div><div className="text-[10px] text-zinc-500">EST. WEIGHT</div><div className="text-white">{activeVariant.estWeight}</div></div>
-                  <div><div className="text-[10px] text-zinc-500">LEAD TIME</div><div className="font-medium text-emerald-400">{activeVariant.leadTime}</div></div>
+                <div className="mb-4">
+                  <div className="text-xs tracking-[1.5px] text-zinc-500">SELECTED</div>
+                  <div className="text-2xl font-semibold tracking-tight text-white">{activeVariant.name}</div>
                 </div>
-                <div className="mb-6 rounded-2xl bg-zinc-900/60 p-4 text-sm text-zinc-300"><span className="font-medium text-white">Best for:</span> {activeVariant.useCase}</div>
-                <div className="space-y-3">
-                  <button onClick={openPurchase} className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white py-4 text-sm font-semibold text-black transition active:bg-zinc-200"><ShoppingCart className="h-4 w-4" /> BUY NOW — ${activeVariant.price || 'Quote'}</button>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button onClick={() => handleDownloadSTEP(activeVariant)} className="flex items-center justify-center gap-2 rounded-2xl border border-zinc-700 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-900 active:bg-zinc-950"><Download className="h-4 w-4" /> DOWNLOAD STEP</button>
+                <div className="mb-6 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                  <div>
+                    <div className="text-[10px] text-zinc-500">EXTERNAL</div>
+                    <div className="font-mono text-white">
+                      {mode === 'custom'
+                        ? `${activeVariant.dimensions.width.toFixed(2)} × ${activeVariant.dimensions.depth.toFixed(2)} × ${activeVariant.dimensions.height.toFixed(2)} in`
+                        : `${activeVariant.dimensions.width} × ${activeVariant.dimensions.depth} × ${activeVariant.dimensions.height} mm`}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-zinc-500">MATERIAL / FINISH</div>
+                    <div className="text-white">{activeVariant.material}<br />{activeVariant.finish}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-zinc-500">EST. WEIGHT</div>
+                    <div className="text-white">{activeVariant.estWeight}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-zinc-500">LEAD TIME</div>
+                    <div className="font-medium text-emerald-400">{activeVariant.leadTime}</div>
                   </div>
                 </div>
-                <p className="mt-4 text-center text-[10px] text-zinc-500">Prices in USD • Volume discounts available • Made in USA</p>
+                <div className="mb-6 rounded-2xl bg-zinc-900/60 p-4 text-sm text-zinc-300">
+                  <span className="font-medium text-white">Best for:</span> {activeVariant.useCase}
+                </div>
+                <div className="space-y-3">
+                  <button
+                    onClick={openPurchase}
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white py-4 text-sm font-semibold text-black transition active:bg-zinc-200"
+                  >
+                    <ShoppingCart className="h-4 w-4" /> BUY NOW — ${activeVariant.price || 'Quote'}
+                  </button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => handleDownloadSTEP(activeVariant)}
+                      className="flex items-center justify-center gap-2 rounded-2xl border border-zinc-700 py-3.5 text-sm font-medium text-white transition hover:bg-zinc-900 active:bg-zinc-950"
+                    >
+                      <Download className="h-4 w-4" /> DOWNLOAD STEP
+                    </button>
+                  </div>
+                </div>
+                <p className="mt-4 text-center text-[10px] text-zinc-500">
+                  Prices in USD • Volume discounts available • Made in USA
+                </p>
               </div>
             </div>
           </div>
