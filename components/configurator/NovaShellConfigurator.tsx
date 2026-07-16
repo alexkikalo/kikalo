@@ -293,7 +293,7 @@ END-ISO-10303-21;`
           </div>
         </div>
 
-        {/* Equal height columns - adjusted fr to reduce preview width, give controls more space */}
+        {/* Equal height columns */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.5fr,1.25fr,1.25fr] lg:gap-10 items-stretch">
           {/* Preview column */}
           <div className="lg:col-span-1 h-full">
@@ -630,9 +630,9 @@ END-ISO-10303-21;`
             </div>
           </div>
 
-          {/* Checkout column - ports summary now scrolls internally so height stays fixed */}
+          {/* Checkout column - capped height + internal scroll on ports list */}
           <div className="lg:col-span-1 h-full">
-            <div className="sticky top-6 h-full">
+            <div className="sticky top-6 h-full max-h-[520px] overflow-hidden">
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
                 <div className="mb-4">
                   <div className="text-xs tracking-[1.5px] text-zinc-500">SELECTED</div>
