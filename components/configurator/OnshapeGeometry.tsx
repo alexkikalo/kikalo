@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, Center } from '@react-three/drei'
 
 interface OnshapeGeometryProps {
   geometryData: any
@@ -13,7 +13,8 @@ interface OnshapeGeometryProps {
 }
 
 /**
- * Renders real geometry from Onshape (values in inches)
+ * Renders real tessellated geometry from Onshape (values in inches).
+ * Designed to fill a fixed parent frame (h-full w-full).
  */
 export function OnshapeGeometry({ geometryData, isLoading, error, className = '' }: OnshapeGeometryProps) {
   const realGeometry = useMemo(() => {
@@ -33,7 +34,9 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
             if (!facet.vertices || facet.vertices.length !== 3) return
 
             facet.vertices.forEach((v: any) => {
-              allVertices.push(v.x, v.y, v.z) // already in inches
+              // Onshape returns inches. Three.js Y-up.
+              // Many CAD exports are Z-up; we rotate later if needed.
+              allVertices.push(v.x, v.y, v.z)
             })
 
             faceCount++
@@ -65,9 +68,10 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
 
   if (isLoading) {
     return (
-      <div className={`flex items-center justify-center rounded-3xl border border-zinc-800 bg-zinc-950 ${className}`}>
+      <div className={`flex h-full w-full items-center justify-center ${className}`}>
         <div className="text-center">
-          <div className="text-sm text-zinc-400">Loading precise preview…</div>
+          <div className="mb-2 h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-white mx-auto" />
+          <div className="text-sm text-zinc-400">Loading precise Onshape preview…</div>
         </div>
       </div>
     )
@@ -75,54 +79,66 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
 
   if (error) {
     return (
-      <div className={`flex items-center justify-center rounded-3xl border border-zinc-800 bg-zinc-950 ${className}`}>
-        <div className="text-center text-red-400 text-sm">{error}</div>
+      <div className={`flex h-full w-full items-center justify-center ${className}`}>
+        <div className="text-center text-red-400 text-sm px-4">{error}</div>
       </div>
     )
   }
 
   if (realGeometry && realGeometry.mesh) {
     return (
-      <div className={`relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 ${className}`}>
+      <div className={`relative h-full w-full overflow-hidden ${className}`}>
         <Canvas
-          camera={{ position: [7, 5.5, 7], fov: 45 }}
-          style={{ background: 'transparent' }}
+          camera={{ position: [0.28, 0.22, 0.28], fov: 42 }}
+          style={{ background: 'transparent', width: '100%', height: '100%' }}
           gl={{ antialias: true, alpha: true }}
         >
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[8, 12, 8]} intensity={1.4} />
-          <directionalLight position={[-8, 4, -10]} intensity={0.7} />
+          <ambientLight intensity={0.65} />
+          <directionalLight position={[6, 10, 6]} intensity={1.4} />
+          <directionalLight position={[-6, 4, -8]} intensity={0.7} />
 
-          <primitive object={realGeometry.mesh} />
+          <Center>
+            {/*
+              If the tessellation arrives Z-up (common), rotate so Z becomes Y-up.
+              If it already looks correct, this can be removed or flipped.
+            */}
+            <group rotation={[-Math.PI / 2, 0, 0]}>
+              <primitive object={realGeometry.mesh} />
+            </group>
+          </Center>
 
-          <OrbitControls enableDamping dampingFactor={0.12} />
+          <OrbitControls enableDamping dampingFactor={0.12} target={[0, 0, 0]} />
         </Canvas>
 
+        <div className="absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1 text-[10px] font-mono tracking-[1.5px] text-emerald-400 backdrop-blur">
+          LIVE ONSHAPE
+        </div>
         <div className="absolute bottom-3 right-3 rounded bg-black/60 px-2 py-0.5 text-[10px] text-emerald-400">
-          Real Onshape geometry ({realGeometry.faceCount.toLocaleString()} faces)
+          {realGeometry.faceCount.toLocaleString()} faces
         </div>
       </div>
     )
   }
 
+  // Fallback placeholder while waiting for first successful load
   return (
-    <div className={`relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 ${className}`}>
+    <div className={`relative h-full w-full overflow-hidden ${className}`}>
       <Canvas
-        camera={{ position: [7, 5.5, 7], fov: 45 }}
-        style={{ background: 'transparent' }}
+        camera={{ position: [0.22, 0.18, 0.22], fov: 42 }}
+        style={{ background: 'transparent', width: '100%', height: '100%' }}
         gl={{ antialias: true, alpha: true }}
       >
         <ambientLight intensity={0.6} />
-        <directionalLight position={[8, 12, 8]} intensity={1.2} />
+        <directionalLight position={[6, 10, 6]} intensity={1.2} />
         <mesh>
-          <boxGeometry args={[4.72, 3.74, 1.77]} />
+          <boxGeometry args={[4.72, 1.77, 3.74]} />
           <meshStandardMaterial color="#c8c8c8" metalness={0.9} roughness={0.3} />
         </mesh>
         <OrbitControls enableDamping dampingFactor={0.1} />
       </Canvas>
 
-      <div className="absolute bottom-3 right-3 rounded bg-black/60 px-2 py-0.5 text-[10px] text-zinc-400">
-        Real geometry at default size
+      <div className="absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1 text-[10px] font-mono tracking-[1.5px] text-zinc-400 backdrop-blur">
+        WAITING FOR ONSHAPE
       </div>
     </div>
   )
