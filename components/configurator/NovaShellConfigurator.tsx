@@ -19,6 +19,9 @@ const CUSTOM_RANGES = {
   height: { min: 2.0, max: 10.0, step: 0.01 },
 }
 
+// Port position ranges (match Onshape Front_HDMI_01_X / Y limits)
+const PORT_POS_RANGE = { min: -10, max: 10, step: 0.01 }
+
 const DEBOUNCE_MS = 450
 
 // Common connector / cutout options for the front port plate
@@ -57,7 +60,7 @@ export function NovaShellConfigurator() {
   const [modalMode, setModalMode] = useState<'purchase' | 'quote'>('purchase')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Front face ports — first HDMI port drives Onshape Front-HDMI-01
+  // Front face ports — first HDMI port drives Onshape Front_HDMI_01
   const [ports, setPorts] = useState<Port[]>([])
 
   // Live Onshape geometry state
@@ -102,7 +105,7 @@ export function NovaShellConfigurator() {
         height: dims.height.toFixed(3),
       })
 
-      // Map first HDMI port to Onshape Front-HDMI-01 parameters
+      // Map first HDMI port to Onshape Front_HDMI_01 parameters
       const hdmiPort = currentPorts.find((p) => p.type === 'hdmi')
       if (hdmiPort) {
         params.set('hdmi', 'true')
@@ -208,12 +211,20 @@ export function NovaShellConfigurator() {
         p.id === id
           ? {
               ...p,
-              x: Math.round((p.x + dx) * 100) / 100,
-              y: Math.round((p.y + dy) * 100) / 100,
+              x: Math.round(Math.max(PORT_POS_RANGE.min, Math.min(PORT_POS_RANGE.max, p.x + dx)) * 100) / 100,
+              y: Math.round(Math.max(PORT_POS_RANGE.min, Math.min(PORT_POS_RANGE.max, p.y + dy)) * 100) / 100,
             }
           : p
       )
     )
+  }
+
+  const setPortCoord = (id: string, axis: 'x' | 'y', raw: string) => {
+    const parsed = parseFloat(raw)
+    if (isNaN(parsed)) return
+    const clamped = Math.max(PORT_POS_RANGE.min, Math.min(PORT_POS_RANGE.max, parsed))
+    const rounded = Math.round(clamped * 100) / 100
+    updatePort(id, { [axis]: rounded })
   }
 
   const rotatePort = (id: string) => {
@@ -506,7 +517,7 @@ END-ISO-10303-21;`
                       <div>
                         <div className="text-sm font-medium tracking-widest text-zinc-400">FRONT PORTS</div>
                         <div className="text-xs text-zinc-500">
-                          First HDMI port is live in Onshape (Front-HDMI-01). Other ports coming soon.
+                          First HDMI port is live in Onshape (Front_HDMI_01). Other ports coming soon.
                         </div>
                       </div>
                       <button
@@ -574,44 +585,60 @@ END-ISO-10303-21;`
                                 {/* Position */}
                                 <div>
                                   <div className="mb-1.5 text-[10px] tracking-wider text-zinc-500">POSITION</div>
-                                  <div className="flex flex-col gap-1.5">
-                                    <div className="flex items-center gap-1">
+                                  <div className="flex flex-col gap-2">
+                                    {/* X row */}
+                                    <div className="flex items-center gap-1.5">
                                       <button
                                         onClick={() => movePort(port.id, -0.1, 0)}
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-950 text-zinc-400 transition hover:border-zinc-500 hover:text-white"
+                                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-950 text-zinc-400 transition hover:border-zinc-500 hover:text-white"
                                         title="Move left"
                                       >
                                         <ArrowLeft className="h-3.5 w-3.5" />
                                       </button>
                                       <button
                                         onClick={() => movePort(port.id, 0.1, 0)}
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-950 text-zinc-400 transition hover:border-zinc-500 hover:text-white"
+                                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-950 text-zinc-400 transition hover:border-zinc-500 hover:text-white"
                                         title="Move right"
                                       >
                                         <ArrowRight className="h-3.5 w-3.5" />
                                       </button>
-                                      <span className="ml-1 font-mono text-[11px] tabular-nums text-zinc-400">
-                                        X {port.x >= 0 ? '+' : ''}{port.x.toFixed(2)}
-                                      </span>
+                                      <span className="text-[10px] text-zinc-500 w-3">X</span>
+                                      <input
+                                        type="number"
+                                        min={PORT_POS_RANGE.min}
+                                        max={PORT_POS_RANGE.max}
+                                        step={PORT_POS_RANGE.step}
+                                        value={port.x}
+                                        onChange={(e) => setPortCoord(port.id, 'x', e.target.value)}
+                                        className="w-16 rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-right font-mono text-xs text-white focus:border-white/60 focus:outline-none"
+                                      />
                                     </div>
-                                    <div className="flex items-center gap-1">
+                                    {/* Y row */}
+                                    <div className="flex items-center gap-1.5">
                                       <button
                                         onClick={() => movePort(port.id, 0, 0.1)}
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-950 text-zinc-400 transition hover:border-zinc-500 hover:text-white"
+                                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-950 text-zinc-400 transition hover:border-zinc-500 hover:text-white"
                                         title="Move up"
                                       >
                                         <ArrowUp className="h-3.5 w-3.5" />
                                       </button>
                                       <button
                                         onClick={() => movePort(port.id, 0, -0.1)}
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-950 text-zinc-400 transition hover:border-zinc-500 hover:text-white"
+                                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-950 text-zinc-400 transition hover:border-zinc-500 hover:text-white"
                                         title="Move down"
                                       >
                                         <ArrowDown className="h-3.5 w-3.5" />
                                       </button>
-                                      <span className="ml-1 font-mono text-[11px] tabular-nums text-zinc-400">
-                                        Y {port.y >= 0 ? '+' : ''}{port.y.toFixed(2)}
-                                      </span>
+                                      <span className="text-[10px] text-zinc-500 w-3">Y</span>
+                                      <input
+                                        type="number"
+                                        min={PORT_POS_RANGE.min}
+                                        max={PORT_POS_RANGE.max}
+                                        step={PORT_POS_RANGE.step}
+                                        value={port.y}
+                                        onChange={(e) => setPortCoord(port.id, 'y', e.target.value)}
+                                        className="w-16 rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-right font-mono text-xs text-white focus:border-white/60 focus:outline-none"
+                                      />
                                     </div>
                                   </div>
                                 </div>
@@ -636,7 +663,7 @@ END-ISO-10303-21;`
 
                               <div className="mt-3 border-t border-zinc-800 pt-2 text-[10px] text-zinc-600">
                                 {typeLabel} · X {port.x.toFixed(2)} in · Y {port.y.toFixed(2)} in · {port.rotation}°
-                                {isLiveHdmi && ' · driving Front-HDMI-01'}
+                                {isLiveHdmi && ' · driving Front_HDMI_01'}
                               </div>
                             </div>
                           )
@@ -646,7 +673,7 @@ END-ISO-10303-21;`
 
                     {ports.length > 0 && (
                       <div className="mt-4 text-[10px] text-zinc-500">
-                        Positions are relative to center of front face. The first HDMI port updates the live Onshape cutout (Front-HDMI-01).
+                        Positions are relative to center of front face (−10 to +10 in). The first HDMI port updates the live Onshape cutout.
                       </div>
                     )}
                   </div>
