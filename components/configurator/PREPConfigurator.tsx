@@ -18,7 +18,6 @@ type FailureMode = {
 type FMEAItem = {
   id: string
   name: string
-  type: 'component' | 'process'
   failureModes: FailureMode[]
 }
 
@@ -45,11 +44,13 @@ const getRiskLevel = (rpn: number) => {
 }
 
 export function PREPConfigurator() {
+  // New top-level mode: Design FMEA or Process FMEA
+  const [fmeaType, setFmeaType] = useState<'design' | 'process'>('design')
+
   const [items, setItems] = useState<FMEAItem[]>([
     {
       id: 'item-1',
       name: 'Housing / Enclosure',
-      type: 'component',
       failureModes: [],
     },
   ])
@@ -60,12 +61,36 @@ export function PREPConfigurator() {
   const selectedItem = items.find(i => i.id === selectedItemId) || items[0]
   const selectedFailureMode = selectedItem?.failureModes.find(fm => fm.id === selectedFailureModeId) || null
 
-  // Add new item (component or process step)
-  const addItem = (type: 'component' | 'process') => {
+  // Switch between Design and Process FMEA (resets items for clean separation)
+  const switchFmeaType = (newType: 'design' | 'process') => {
+    if (newType === fmeaType) return
+
+    const confirmSwitch = window.confirm(
+      `Switch to ${newType === 'design' ? 'Design FMEA (DFMEA)' : 'Process FMEA (PFMEA)'}?\n\nThis will clear the current items and start fresh.`
+    )
+
+    if (!confirmSwitch) return
+
+    setFmeaType(newType)
+
+    // Reset with appropriate starting item
+    const defaultName = newType === 'design' ? 'Housing / Enclosure' : 'Assembly / Soldering'
+    const newItem: FMEAItem = {
+      id: 'item-1',
+      name: defaultName,
+      failureModes: [],
+    }
+    setItems([newItem])
+    setSelectedItemId(newItem.id)
+    setSelectedFailureModeId(null)
+  }
+
+  // Add new item (context-aware based on current FMEA type)
+  const addItem = () => {
+    const defaultName = fmeaType === 'design' ? 'New Component' : 'New Process Step'
     const newItem: FMEAItem = {
       id: `item-${Date.now()}`,
-      name: type === 'component' ? 'New Component' : 'New Process Step',
-      type,
+      name: defaultName,
       failureModes: [],
     }
     setItems(prev => [...prev, newItem])
@@ -82,7 +107,7 @@ export function PREPConfigurator() {
 
   // Delete item
   const deleteItem = (id: string) => {
-    if (items.length === 1) return // Keep at least one item
+    if (items.length === 1) return
     setItems(prev => prev.filter(item => item.id !== id))
     if (selectedItemId === id) {
       setSelectedItemId(items[0].id)
@@ -132,14 +157,11 @@ export function PREPConfigurator() {
 
   // Get all failure modes across all items (for summary)
   const allFailureModes = items.flatMap(item => 
-    item.failureModes.map(fm => ({ ...fm, itemName: item.name, itemType: item.type }))
+    item.failureModes.map(fm => ({ ...fm, itemName: item.name }))
   )
 
   const totalRPNs = allFailureModes.length
   const highRiskCount = allFailureModes.filter(fm => calculateRPN(fm) >= 100).length
-  const avgRPN = totalRPNs > 0 
-    ? Math.round(allFailureModes.reduce((sum, fm) => sum + calculateRPN(fm), 0) / totalRPNs) 
-    : 0
 
   // Export functions (placeholder for now)
   const exportToPDF = () => {
@@ -150,52 +172,63 @@ export function PREPConfigurator() {
     alert('VDA / AIAG export coming soon — will generate compliant spreadsheet')
   }
 
+  const isDesign = fmeaType === 'design'
+
   return (
     <div className="w-full">
       <div className="mx-auto max-w-7xl px-6 pb-12">
         {/* Header */}
-        <div className="mb-8 flex items-end justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-blue-500/10 p-2">
-                <Target className="h-6 w-6 text-blue-400" />
-              </div>
-              <div>
-                <div className="text-3xl font-semibold tracking-tighter">PREP Configurator</div>
-                <div className="text-sm text-zinc-400">Product Risk Evaluation & Prevention — America's FMEA</div>
-              </div>
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-blue-500/10 p-2">
+              <Target className="h-6 w-6 text-blue-400" />
+            </div>
+            <div>
+              <div className="text-3xl font-semibold tracking-tighter">PREP Configurator</div>
+              <div className="text-sm text-zinc-400">Product Risk Evaluation & Prevention — America's FMEA</div>
             </div>
           </div>
-          <div className="text-right text-xs text-zinc-500">
-            Free format • Paid VDA / PDF export
+
+          {/* Design vs Process Toggle */}
+          <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1 self-start lg:self-auto">
+            <button
+              onClick={() => switchFmeaType('design')}
+              className={`flex-1 rounded-xl px-5 py-2 text-sm font-medium transition ${isDesign 
+                ? 'bg-white text-black shadow' 
+                : 'text-zinc-400 hover:text-white'}`}
+            >
+              Design FMEA (DFMEA)
+            </button>
+            <button
+              onClick={() => switchFmeaType('process')}
+              className={`flex-1 rounded-xl px-5 py-2 text-sm font-medium transition ${!isDesign 
+                ? 'bg-white text-black shadow' 
+                : 'text-zinc-400 hover:text-white'}`}
+            >
+              Process FMEA (PFMEA)
+            </button>
           </div>
         </div>
 
-        {/* 3-Column Layout (matching NovaShell style) */}
+        {/* 3-Column Layout */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr,1.3fr,1.3fr] lg:gap-8 items-start">
           
-          {/* COLUMN 1: Items / Structure List (Scrollable) */}
+          {/* COLUMN 1: Items / Structure List */}
           <div className="lg:sticky lg:top-6">
             <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <div className="text-sm font-medium tracking-widest text-zinc-400">STRUCTURE</div>
-                  <div className="text-xs text-zinc-500">Components & Process Steps</div>
+                  <div className="text-xs text-zinc-500">
+                    {isDesign ? 'Components & Subsystems' : 'Process Steps & Operations'}
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => addItem('component')}
-                    className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800 active:scale-[0.98]"
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Component
-                  </button>
-                  <button
-                    onClick={() => addItem('process')}
-                    className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800 active:scale-[0.98]"
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Process
-                  </button>
-                </div>
+                <button
+                  onClick={addItem}
+                  className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition hover:border-zinc-500 hover:bg-zinc-800 active:scale-[0.98]"
+                >
+                  <Plus className="h-3.5 w-3.5" /> {isDesign ? 'Add Component' : 'Add Process Step'}
+                </button>
               </div>
 
               <div className="max-h-[520px] space-y-2 overflow-y-auto pr-1
@@ -219,10 +252,7 @@ export function PREPConfigurator() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className={`inline-block rounded px-1.5 py-px text-[9px] font-medium tracking-wider ${item.type === 'component' ? 'bg-blue-500/10 text-blue-400' : 'bg-violet-500/10 text-violet-400'}`}>
-                              {item.type.toUpperCase()}
-                            </span>
+                          <div className="font-medium text-white">
                             <input
                               value={item.name}
                               onChange={(e) => {
@@ -230,7 +260,7 @@ export function PREPConfigurator() {
                                 updateItemName(item.id, e.target.value)
                               }}
                               onClick={(e) => e.stopPropagation()}
-                              className="flex-1 bg-transparent font-medium text-white outline-none focus:underline"
+                              className="w-full bg-transparent outline-none focus:underline"
                             />
                           </div>
                           <div className="mt-1 text-xs text-zinc-500">
@@ -260,7 +290,9 @@ export function PREPConfigurator() {
               </div>
 
               <div className="mt-4 text-[10px] text-zinc-500">
-                Add components or process steps. Click to select and analyze.
+                {isDesign 
+                  ? 'Add components or subsystems you are designing. Click any item to analyze its failure modes.'
+                  : 'Add process steps or operations. Click any step to analyze its failure modes.'}
               </div>
             </div>
           </div>
@@ -288,7 +320,7 @@ export function PREPConfigurator() {
                     <AlertTriangle className="h-5 w-5 text-zinc-400" />
                   </div>
                   <div className="text-sm text-zinc-400">No failure mode selected</div>
-                  <div className="mt-1 text-xs text-zinc-500">Add a failure mode or select one from the list below</div>
+                  <div className="mt-1 text-xs text-zinc-500">Add a failure mode using the button above</div>
                 </div>
               ) : (
                 <div className="space-y-5">
@@ -298,7 +330,7 @@ export function PREPConfigurator() {
                     <input
                       value={selectedFailureMode.mode}
                       onChange={(e) => updateFailureMode(selectedItem.id, selectedFailureMode.id, 'mode', e.target.value)}
-                      placeholder="e.g. Cracking under vibration"
+                      placeholder={isDesign ? "e.g. Cracking under vibration" : "e.g. Insufficient solder paste"}
                       className="w-full rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-blue-500/60 focus:outline-none"
                     />
                   </div>
@@ -309,7 +341,7 @@ export function PREPConfigurator() {
                     <textarea
                       value={selectedFailureMode.effect}
                       onChange={(e) => updateFailureMode(selectedItem.id, selectedFailureMode.id, 'effect', e.target.value)}
-                      placeholder="e.g. Loss of environmental seal, ingress of dust/moisture"
+                      placeholder={isDesign ? "e.g. Loss of environmental seal" : "e.g. Weak joint, electrical failure"}
                       rows={2}
                       className="w-full resize-y rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-blue-500/60 focus:outline-none"
                     />
@@ -362,7 +394,7 @@ export function PREPConfigurator() {
                     <textarea
                       value={selectedFailureMode.controls}
                       onChange={(e) => updateFailureMode(selectedItem.id, selectedFailureMode.id, 'controls', e.target.value)}
-                      placeholder="Design features, material specs, process controls..."
+                      placeholder={isDesign ? "Design features, material specs, tolerances..." : "Process controls, inspection steps, fixtures..."}
                       rows={2}
                       className="w-full resize-y rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-blue-500/60 focus:outline-none"
                     />
@@ -374,7 +406,7 @@ export function PREPConfigurator() {
                     <textarea
                       value={selectedFailureMode.actions}
                       onChange={(e) => updateFailureMode(selectedItem.id, selectedFailureMode.id, 'actions', e.target.value)}
-                      placeholder="Design changes, additional testing, process improvements..."
+                      placeholder={isDesign ? "Design changes, material selection, geometry updates..." : "Process changes, tooling, training, poka-yoke..."}
                       rows={2}
                       className="w-full resize-y rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-blue-500/60 focus:outline-none"
                     />
@@ -419,7 +451,7 @@ export function PREPConfigurator() {
               
               {allFailureModes.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/40 px-4 py-8 text-center text-xs text-zinc-500">
-                  No failure modes yet. Add items and failure modes to see risk summary.
+                  No failure modes yet.
                 </div>
               ) : (
                 <div className="max-h-[280px] space-y-2 overflow-y-auto pr-1 text-sm
@@ -445,7 +477,7 @@ export function PREPConfigurator() {
                 </div>
               )}
 
-              {/* Export Actions ("Checkout") */}
+              {/* Export Actions */}
               <div className="mt-6 space-y-3 border-t border-zinc-800 pt-6">
                 <button
                   onClick={exportToPDF}
@@ -469,7 +501,7 @@ export function PREPConfigurator() {
         </div>
 
         <div className="mt-8 text-center text-xs text-zinc-500">
-          This is a working prototype of the PREP FMEA configurator. Data is saved in your browser for this session.
+          Working prototype • {isDesign ? 'Design FMEA' : 'Process FMEA'} mode • Data saved in this browser session
         </div>
       </div>
     </div>
