@@ -33,8 +33,7 @@ export default function PREPPage() {
           </p>
 
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto mb-10">
-            A bird's-eye view of your design and process risks — powered by the Eagle. 
-            Industrial blue clarity meets modern configurator speed.
+            A clear, complete view of your design and process risks. Modern configurator speed with industrial blue clarity.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -73,33 +72,6 @@ export default function PREPPage() {
         </div>
       </section>
 
-      {/* Branding & Vision */}
-      <section className="bg-zinc-900/50 py-16 border-b border-white/10">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 text-blue-400 text-sm tracking-widest mb-4">
-                <Eye className="h-4 w-4" /> BIRD'S-EYE VIEW
-              </div>
-              <h3 className="text-3xl font-semibold tracking-tight mb-4">Eagle Branding</h3>
-              <p className="text-zinc-400 text-lg">
-                The Eagle represents the complete overview — seeing the entire design and process risk landscape at once, not just isolated cells in a spreadsheet. PREP gives you that strategic vantage point with an interface built in industrial blue: clean, serious, and unmistakably professional.
-              </p>
-            </div>
-            <div className="rounded-3xl border border-white/10 bg-zinc-950 p-8 text-sm text-zinc-400">
-              <div className="font-mono text-xs tracking-[2px] text-blue-400 mb-3">PREP PHILOSOPHY</div>
-              <ul className="space-y-3">
-                <li className="flex gap-3"><span className="text-blue-400 mt-1">→</span> Start simple. Stay rigorous.</li>
-                <li className="flex gap-3"><span className="text-blue-400 mt-1">→</span> Free = powerful new streamlined format</li>
-                <li className="flex gap-3"><span className="text-blue-400 mt-1">→</span> Paid = instant VDA, AIAG, PDF, Excel & more</li>
-                <li className="flex gap-3"><span className="text-blue-400 mt-1">→</span> Web configurator, not legacy desktop bloat</li>
-                <li className="flex gap-3"><span className="text-blue-400 mt-1">→</span> Built for speed, teachability, and real American teams</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Features */}
       <section className="mx-auto max-w-5xl px-6 py-20">
         <div className="text-center mb-12">
@@ -121,8 +93,8 @@ export default function PREPPage() {
             <div className="w-11 h-11 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6">
               <Eye className="h-5 w-5 text-blue-400" />
             </div>
-            <div className="font-semibold text-xl mb-3">Bird's-Eye Risk Dashboard</div>
-            <p className="text-zinc-400">Instant visual overview of your complete risk profile. The Eagle view shows high-risk areas, coverage gaps, and action priorities at a glance — before you dive into rows.</p>
+            <div className="font-semibold text-xl mb-3">Complete Risk Overview</div>
+            <p className="text-zinc-400">Instant visual summary of your full risk profile. See high-risk areas, coverage gaps, and action priorities at a glance before diving into details.</p>
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-zinc-950/60 p-8">
