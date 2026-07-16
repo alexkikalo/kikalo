@@ -294,8 +294,8 @@ END-ISO-10303-21;`
             </div>
           </div>
 
-          {/* Preset / Custom Toggle - moved to header for consistency with PREP */}
-          <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1 self-start lg:self-auto">
+          {/* Preset / Custom Toggle - same structure and width behavior as PREP */}
+          <div className="mt-4 lg:mt-0 flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1 self-start lg:self-auto lg:w-[280px]">
             <button
               onClick={switchToPreset}
               className={`flex-1 rounded-xl px-5 py-2 text-sm font-medium transition ${mode === 'preset' ? 'bg-white text-black shadow' : 'text-zinc-400 hover:text-white'}`}
