@@ -56,11 +56,11 @@ export default function KikaloHome() {
         </div>
       </section>
 
-      {/* Trust / Quick value props — generalized beyond single product */}
+      {/* Trust / Quick value props */}
       <section className="border-b border-white/10 py-12">
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-6 md:grid-cols-3">
           {[
-            { icon: Box, label: "Modular Hardware", desc: "Formed aluminum systems designed to adapt, expand, and last for decades of real engineering use." },
+            { icon: Box, label: "Premium Hardware", desc: "Formed aluminum systems designed for real engineering use and built to last decades." },
             { icon: Cpu, label: "Intelligent Software", desc: "Guided tools that turn complex engineering workflows into clean, professional deliverables." },
             { icon: Wrench, label: "Built for Builders", desc: "Every product is made to be repaired, upgraded, and handed down. American craftsmanship meets modern digital manufacturing." },
           ].map((item, index) => (
@@ -81,7 +81,7 @@ export default function KikaloHome() {
         <h2 className="text-4xl font-semibold tracking-tight">Kikalo builds durable tools for the builders of tomorrow.</h2>
         <p className="mt-6 text-lg text-zinc-400">
           We create premium physical products and intelligent software that help engineers, makers, and teams move faster without sacrificing quality.
-          From modular aluminum enclosures to guided FMEA and control-plan tools, everything is designed to be practical, repairable, and built to last.
+          From custom aluminum enclosures to guided FMEA and control-plan tools, everything is designed to be practical, repairable, and built to last.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="#capabilities" className="text-sm font-medium underline underline-offset-4 hover:no-underline">
@@ -90,7 +90,7 @@ export default function KikaloHome() {
         </div>
       </section>
 
-      {/* Capabilities / Products — now the clear center of the page */}
+      {/* Capabilities / Products */}
       <section id="capabilities" className="border-t border-white/10 bg-zinc-900/40 py-20">
         <div className="mx-auto max-w-5xl px-6">
           <div className="text-center mb-14">
@@ -105,9 +105,9 @@ export default function KikaloHome() {
             {/* NovaShell card */}
             <div className="rounded-3xl border border-white/10 bg-zinc-950/60 p-8 flex flex-col">
               <div className="font-semibold text-xl mb-2">NovaShell</div>
-              <div className="text-xs tracking-wider text-zinc-500 mb-4">MODULAR ALUMINUM ENCLOSURES</div>
+              <div className="text-xs tracking-wider text-zinc-500 mb-4">CUSTOM ALUMINUM ENCLOSURES</div>
               <p className="text-zinc-400 flex-1">
-                Premium formed-sheet-metal enclosures for SBCs, embedded systems, and OEM electronics. Two standard sizes with universal mounting, fixed port layouts for inventory, and full made-to-order custom capability via SendCutSend. Hybrid fulfillment keeps common shells shipping in days.
+                Premium formed-sheet-metal enclosures for SBCs, embedded systems, and OEM electronics. Preconfigured sizes ready to ship + full made-to-order custom capability via SendCutSend. Hybrid fulfillment keeps common shells shipping in days.
               </p>
               <Link
                 href="/nova-shell"
@@ -138,7 +138,6 @@ export default function KikaloHome() {
             </div>
           </div>
 
-          {/* Optional future tools teaser */}
           <div className="mt-10 text-center">
             <p className="text-sm text-zinc-500">
               More tools are in development. Built the same way: practical, premium, and useful from day one.
