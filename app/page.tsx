@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Box, Cpu, Wrench, ShieldCheck, Clock } from 'lucide-react';
+import { ArrowRight, Box, Cpu, Wrench } from 'lucide-react';
 import { SiteNav } from '@/components/SiteNav';
 
 export default function KikaloHome() {
