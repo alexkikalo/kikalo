@@ -126,7 +126,7 @@ export default function KikaloHome() {
               </div>
               <div className="text-xs tracking-wider text-zinc-500 mb-4">PRODUCT RISK EVALUATION & PREVENTION — AMERICA'S FMEA</div>
               <p className="text-zinc-400 flex-1">
-                The intuitive web-based FMEA configurator. Start free with our streamlined new format. Paid unlocks one-click exports to VDA, AIAG, PDF, and professional templates. Bird's-eye risk overview with industrial blue clarity. Built to be teachable and fast.
+                The intuitive web-based FMEA configurator. Start free with our streamlined new format. Paid unlocks one-click exports to VDA, AIAG, PDF, and professional templates. Complete risk overview with industrial blue clarity. Built to be teachable and fast.
               </p>
               <Link
                 href="/fmea"
