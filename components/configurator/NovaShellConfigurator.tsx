@@ -282,12 +282,14 @@ END-ISO-10303-21;`
   return (
     <div className="w-full">
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-8">
-        {/* Full-width ribbon spanning all three columns, above the grid (yellow highlight) */}
-        <div className="mb-6 text-center">
-          <div className="inline-block bg-zinc-950/90 backdrop-blur-sm border border-white/10 rounded-2xl px-8 py-2">
-            <div className="text-[7px] tracking-[3px] text-white/60">MADE IN TEXAS • PREMIUM CUSTOM ALUMINUM</div>
-            <div className="text-xl font-semibold tracking-tighter text-white -mt-0.5">NovaShell</div>
-            <div className="text-[8px] text-white/70 -mt-1">Precision custom aluminum enclosures for makers, engineers, and OEMs. Built to last. Ready to ship.</div>
+        {/* Full-width ribbon exactly aligned with left of preview column to right of checkout column */}
+        <div className="mb-6">
+          <div className="bg-zinc-950/90 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-2">
+            <div className="text-center">
+              <div className="text-[7px] tracking-[3px] text-white/60">MADE IN TEXAS • PREMIUM CUSTOM ALUMINUM</div>
+              <div className="text-xl font-semibold tracking-tighter text-white -mt-0.5">NovaShell</div>
+              <div className="text-[8px] text-white/70 -mt-1">Precision custom aluminum enclosures for makers, engineers, and OEMs. Built to last. Ready to ship.</div>
+            </div>
           </div>
         </div>
 
