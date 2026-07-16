@@ -293,11 +293,11 @@ END-ISO-10303-21;`
           </div>
         </div>
 
-        {/* Grid with consistent tall column backgrounds from bottom of ribbon to above footer */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr,1fr,1fr] lg:gap-10 min-h-[calc(100vh-13rem)] items-stretch">
-          {/* Preview column - tall background */}
-          <div className="lg:col-span-1 h-full">
-            <div className="relative h-full w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl">
+        {/* Grid - consistent column backgrounds from bottom of ribbon down, no infinite growth */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr,1fr,1fr] lg:gap-10 min-h-[calc(100vh-14rem)] items-start">
+          {/* Preview column */}
+          <div className="lg:col-span-1">
+            <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl min-h-[520px] sm:min-h-[580px] md:min-h-[650px] lg:min-h-[calc(100vh-15rem)]">
               {mode === 'custom' ? renderCustomPreview() : (
                 <ThreeDViewer variant={activeVariant} className="h-full w-full" />
               )}
@@ -342,9 +342,9 @@ END-ISO-10303-21;`
             )}
           </div>
 
-          {/* Controls column - tall background via h-full + sticky content */}
-          <div className="lg:col-span-1 h-full">
-            <div className="sticky top-6 h-full max-h-[calc(100vh-10rem)] overflow-y-auto space-y-6 pr-1">
+          {/* Controls column - capped height + internal scroll */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-6 max-h-[calc(100vh-10rem)] overflow-y-auto space-y-6 pr-1">
               {/* Mode Toggle */}
               <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1">
                 <button
@@ -630,9 +630,9 @@ END-ISO-10303-21;`
             </div>
           </div>
 
-          {/* Checkout column - tall background */}
-          <div className="lg:col-span-1 h-full">
-            <div className="sticky top-6 h-full">
+          {/* Checkout column - capped height */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-6 max-h-[calc(100vh-10rem)] overflow-hidden">
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
                 <div className="mb-4">
                   <div className="text-xs tracking-[1.5px] text-zinc-500">SELECTED</div>
