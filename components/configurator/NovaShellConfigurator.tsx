@@ -282,14 +282,32 @@ END-ISO-10303-21;`
   return (
     <div className="w-full">
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-8">
-        {/* Header - PREP style */}
-        <div className="mb-8 flex items-center gap-4">
-          <div className="rounded-2xl bg-zinc-800 p-3">
-            <Box className="h-7 w-7 text-white" />
+        {/* Header - PREP style with mode toggle on the right */}
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="rounded-2xl bg-zinc-800 p-3">
+              <Box className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <div className="text-3xl font-semibold tracking-tighter">NovaShell</div>
+              <div className="text-sm text-zinc-400">Premium custom aluminum enclosures • Made in North Texas</div>
+            </div>
           </div>
-          <div>
-            <div className="text-3xl font-semibold tracking-tighter">NovaShell</div>
-            <div className="text-sm text-zinc-400">Premium custom aluminum enclosures • Made in North Texas</div>
+
+          {/* Preset / Custom Toggle - moved to header for consistency with PREP */}
+          <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1 self-start lg:self-auto">
+            <button
+              onClick={switchToPreset}
+              className={`flex-1 rounded-xl px-5 py-2 text-sm font-medium transition ${mode === 'preset' ? 'bg-white text-black shadow' : 'text-zinc-400 hover:text-white'}`}
+            >
+              Preset Sizes
+            </button>
+            <button
+              onClick={switchToCustom}
+              className={`flex-1 rounded-xl px-5 py-2 text-sm font-medium transition ${mode === 'custom' ? 'bg-white text-black shadow' : 'text-zinc-400 hover:text-white'}`}
+            >
+              Custom Size
+            </button>
           </div>
         </div>
 
@@ -347,22 +365,6 @@ END-ISO-10303-21;`
             <div className="sticky top-6 h-full max-h-[520px] overflow-y-auto space-y-6 pr-1
               [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-700
               [&::-webkit-scrollbar-track]:bg-zinc-900">
-              {/* Mode Toggle */}
-              <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1">
-                <button
-                  onClick={switchToPreset}
-                  className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition ${mode === 'preset' ? 'bg-white text-black shadow' : 'text-zinc-400 hover:text-white'}`}
-                >
-                  Preset Sizes
-                </button>
-                <button
-                  onClick={switchToCustom}
-                  className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition ${mode === 'custom' ? 'bg-white text-black shadow' : 'text-zinc-400 hover:text-white'}`}
-                >
-                  Custom Size
-                </button>
-              </div>
-
               {/* Preset Sizes */}
               {mode === 'preset' && (
                 <div>
