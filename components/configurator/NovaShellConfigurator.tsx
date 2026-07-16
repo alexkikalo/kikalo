@@ -630,7 +630,7 @@ END-ISO-10303-21;`
             </div>
           </div>
 
-          {/* Checkout column */}
+          {/* Checkout column - ports summary now scrolls internally so height stays fixed */}
           <div className="lg:col-span-1 h-full">
             <div className="sticky top-6 h-full">
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
@@ -662,7 +662,7 @@ END-ISO-10303-21;`
                 </div>
 
                 {mode === 'custom' && ports.length > 0 && (
-                  <div className="mb-6 rounded-2xl bg-zinc-900/60 p-4">
+                  <div className="mb-6 rounded-2xl bg-zinc-900/60 p-4 max-h-[130px] overflow-y-auto pr-1">
                     <div className="mb-2 text-[10px] tracking-wider text-zinc-500">FRONT PORTS ({ports.length})</div>
                     <div className="space-y-1 text-sm text-zinc-300">
                       {ports.map((p, i) => (
