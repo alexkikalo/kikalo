@@ -71,7 +71,7 @@ export const variants: NovaShellVariant[] = [
     finish: 'Type II Clear Anodize',
     estWeight: '195g',
     stepFileName: 'novashell-tall-stack.step',
-    features: ['68mm internal height', 'Excellent for displays', 'Modular plate ready']
+    features: ['68mm internal height', 'Excellent for displays', 'Universal mounting plate']
   },
   {
     id: 'wide-proto',
@@ -85,7 +85,7 @@ export const variants: NovaShellVariant[] = [
     finish: 'Type II Clear Anodize',
     estWeight: '245g',
     stepFileName: 'novashell-wide-proto.step',
-    features: ['Large work area', 'Flat bottom for stability', 'Easy panel swaps']
+    features: ['Large work area', 'Flat bottom for stability', 'Easy panel access']
   },
   {
     id: 'oem-large',
