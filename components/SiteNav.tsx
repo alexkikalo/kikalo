@@ -64,7 +64,7 @@ export function SiteNav() {
                   className="block px-4 py-3 text-sm text-white hover:bg-white/5 transition"
                 >
                   <div className="font-medium">NovaShell</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">Modular aluminum enclosures</div>
+                  <div className="text-xs text-zinc-500 mt-0.5">Custom aluminum enclosures</div>
                 </Link>
                 <Link
                   href="/fmea"
@@ -121,7 +121,7 @@ export function SiteNav() {
                 className="block py-2.5 text-white font-medium"
               >
                 NovaShell
-                <span className="block text-xs text-zinc-500 font-normal mt-0.5">Modular aluminum enclosures</span>
+                <span className="block text-xs text-zinc-500 font-normal mt-0.5">Custom aluminum enclosures</span>
               </Link>
               <Link
                 href="/fmea"
