@@ -8,16 +8,19 @@ import { PurchaseModal } from './PurchaseModal'
 import { variants, getVariantById, defaultVariantId, type NovaShellVariant } from '@/lib/variants'
 import { Download, ShoppingCart, Star } from 'lucide-react'
 
-// Default custom dimensions in inches
-const DEFAULT_CUSTOM_DIMS = { width: 4.72, depth: 3.74, height: 1.77 }
+// Default custom dimensions in inches (must stay inside Onshape config ranges for live geometry)
+const DEFAULT_CUSTOM_DIMS = { width: 4.72, depth: 3.0, height: 2.0 }
 
+// UI ranges — kept in sync with Onshape configuration variables
+// (Onshape currently: Width 2–6, Depth 2–3, Height 2–6)
+// Widen these in Onshape first if you want larger live previews.
 const CUSTOM_RANGES = {
-  width:  { min: 2.5,  max: 10.0, step: 0.01 },
-  depth:  { min: 2.0,  max: 6.5,  step: 0.01 },
-  height: { min: 1.0,  max: 3.5,  step: 0.01 },
+  width:  { min: 2.0,  max: 6.0, step: 0.01 },
+  depth:  { min: 2.0,  max: 3.0,  step: 0.01 },
+  height: { min: 2.0,  max: 6.0, step: 0.01 },
 }
 
-const DEBOUNCE_MS = 500
+const DEBOUNCE_MS = 450
 
 export function NovaShellConfigurator() {
   const [selectedId, setSelectedId] = useState(defaultVariantId)
@@ -30,7 +33,6 @@ export function NovaShellConfigurator() {
   const [onshapeData, setOnshapeData] = useState<any>(null)
   const [onshapeLoading, setOnshapeLoading] = useState(false)
   const [onshapeError, setOnshapeError] = useState<string | null>(null)
-  const [onshapeDetail, setOnshapeDetail] = useState<string | null>(null)
   const [useLiveOnshape, setUseLiveOnshape] = useState(true)
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -61,7 +63,6 @@ export function NovaShellConfigurator() {
 
     setOnshapeLoading(true)
     setOnshapeError(null)
-    setOnshapeDetail(null)
 
     try {
       const params = new URLSearchParams({
@@ -78,14 +79,13 @@ export function NovaShellConfigurator() {
 
       if (!res.ok) {
         const msg = payload.error || `Onshape error ${res.status}`
-        const detail = payload.hint || payload.details || (payload.attempts ? JSON.stringify(payload.attempts[0], null, 0).slice(0, 180) : null)
+        const detail = payload.hint || (payload.attempts ? JSON.stringify(payload.attempts[0], null, 0).slice(0, 180) : null)
         throw new Error(msg + (detail ? ` — ${detail}` : ''))
       }
 
       if (payload.success && payload.raw) {
         setOnshapeData(payload)
         setOnshapeError(null)
-        setOnshapeDetail(null)
       } else {
         throw new Error(payload.error || 'No geometry returned from Onshape')
       }
@@ -93,7 +93,6 @@ export function NovaShellConfigurator() {
       if (err.name === 'AbortError') return
       console.warn('Onshape geometry fetch failed:', err)
       setOnshapeError(err.message || 'Failed to load live geometry')
-      setOnshapeDetail(null)
       // Keep any previous successful onshapeData so we don't blank the view
     } finally {
       if (!controller.signal.aborted) {
@@ -239,7 +238,7 @@ END-ISO-10303-21;`
                   {onshapeLoading
                     ? 'Syncing Onshape…'
                     : onshapeData && !onshapeError
-                      ? 'Live Onshape'
+                      ? (onshapeData.clamped ? 'Live Onshape (clamped)' : 'Live Onshape')
                       : onshapeError
                         ? 'Onshape offline (using fast preview)'
                         : 'Onshape ready'}
@@ -330,7 +329,7 @@ END-ISO-10303-21;`
                     <div>
                       <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
                       <div className="text-xs text-zinc-500">
-                        {useLiveOnshape ? 'Live Onshape when available • Made to order' : 'Fast GLTF preview • Made to order'}
+                        {useLiveOnshape ? 'Live Onshape geometry • Made to order' : 'Fast GLTF preview • Made to order'}
                       </div>
                     </div>
                     {useLiveOnshape ? (
@@ -400,7 +399,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    Dimensions update the preview instantly. Live Onshape syncs after you pause.
+                    Sliders match current Onshape configuration limits (Depth max 3 in). Widen the ranges in the Part Studio if you need larger live previews.
                   </div>
                 </div>
               )}
