@@ -8,16 +8,15 @@ import { PurchaseModal } from './PurchaseModal'
 import { variants, getVariantById, defaultVariantId, type NovaShellVariant } from '@/lib/variants'
 import { Download, ShoppingCart, Star } from 'lucide-react'
 
-// Default custom dimensions in inches (must stay inside Onshape config ranges for live geometry)
-const DEFAULT_CUSTOM_DIMS = { width: 4.72, depth: 3.0, height: 2.0 }
+// Default custom dimensions in inches (inside Onshape config ranges)
+const DEFAULT_CUSTOM_DIMS = { width: 4.72, depth: 3.74, height: 2.0 }
 
 // UI ranges — kept in sync with Onshape configuration variables
-// (Onshape currently: Width 2–6, Depth 2–3, Height 2–6)
-// Widen these in Onshape first if you want larger live previews.
+// Onshape now: all axes min 2 in / max 10 in
 const CUSTOM_RANGES = {
-  width:  { min: 2.0,  max: 6.0, step: 0.01 },
-  depth:  { min: 2.0,  max: 3.0,  step: 0.01 },
-  height: { min: 2.0,  max: 6.0, step: 0.01 },
+  width:  { min: 2.0, max: 10.0, step: 0.01 },
+  depth:  { min: 2.0, max: 10.0, step: 0.01 },
+  height: { min: 2.0, max: 10.0, step: 0.01 },
 }
 
 const DEBOUNCE_MS = 450
@@ -399,7 +398,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    Sliders match current Onshape configuration limits (Depth max 3 in). Widen the ranges in the Part Studio if you need larger live previews.
+                    Live Onshape preview (2–10 in). Dimensions update the preview after a short pause.
                   </div>
                 </div>
               )}
