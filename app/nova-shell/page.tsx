@@ -3,8 +3,8 @@ import { SiteNav } from '@/components/SiteNav'
 import { NovaShellClientWrapper } from '@/components/configurator/NovaShellClientWrapper'
 
 export const metadata: Metadata = {
-  title: 'NovaShell | Premium Modular Aluminum Enclosures',
-  description: 'Precision-engineered modular aluminum enclosures for Raspberry Pi, Jetson, custom electronics, and OEM applications. Preconfigured sizes ready to ship from North Texas. Full custom available.',
+  title: 'NovaShell | Premium Custom Aluminum Enclosures',
+  description: 'Precision-engineered custom aluminum enclosures for Raspberry Pi, Jetson, custom electronics, and OEM applications. Preconfigured sizes ready to ship from North Texas. Full custom available.',
 }
 
 export default function NovaShellPage() {
