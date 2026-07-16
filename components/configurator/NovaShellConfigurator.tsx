@@ -281,18 +281,20 @@ END-ISO-10303-21;`
 
   return (
     <div className="w-full">
-      <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr,1fr,1fr] lg:gap-10">
-          {/* Immersive taller preview - fills blue highlighted height, model exactly matches frame */}
-          <div id="novashell-viewer" className="lg:col-span-1">
-            <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl min-h-[480px] sm:min-h-[520px] md:min-h-[580px] lg:min-h-[calc(100vh-13rem)]">
-              {/* Yellow ribbon: thin minimal ribbon exactly as highlighted, tight spacing */}
-              <div className="absolute top-0 left-0 right-0 z-10 bg-zinc-950/90 backdrop-blur-sm border-b border-white/10 px-6 py-1 text-center">
-                <div className="text-[7px] tracking-[3px] text-white/60">MADE IN TEXAS • PREMIUM CUSTOM ALUMINUM</div>
-                <div className="text-base font-semibold tracking-tighter text-white -mt-0.5">NovaShell</div>
-                <div className="text-[7px] text-white/70 -mt-1">Precision custom aluminum enclosures for makers, engineers, and OEMs. Built to last. Ready to ship.</div>
-              </div>
+      <div id="configurator" className="mx-auto max-w-7xl px-6 pb-8">
+        {/* Full-width ribbon spanning all three columns, above the grid (yellow highlight) */}
+        <div className="mb-6 text-center">
+          <div className="inline-block bg-zinc-950/90 backdrop-blur-sm border border-white/10 rounded-2xl px-8 py-2">
+            <div className="text-[7px] tracking-[3px] text-white/60">MADE IN TEXAS • PREMIUM CUSTOM ALUMINUM</div>
+            <div className="text-xl font-semibold tracking-tighter text-white -mt-0.5">NovaShell</div>
+            <div className="text-[8px] text-white/70 -mt-1">Precision custom aluminum enclosures for makers, engineers, and OEMs. Built to last. Ready to ship.</div>
+          </div>
+        </div>
 
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr,1fr,1fr] lg:gap-10">
+          {/* Tall preview filling the blue highlighted area, model matches frame exactly */}
+          <div id="novashell-viewer" className="lg:col-span-1">
+            <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl min-h-[520px] sm:min-h-[580px] md:min-h-[650px] lg:min-h-[calc(100vh-11rem)]">
               {mode === 'custom' ? renderCustomPreview() : (
                 <ThreeDViewer variant={activeVariant} className="h-full w-full" />
               )}
