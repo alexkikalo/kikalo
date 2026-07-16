@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { ThreeDViewer } from './ThreeDViewer'
 import { StaticCaseViewer } from './StaticCaseViewer'
+import { OnshapeGeometry } from './OnshapeGeometry'
 import { PurchaseModal } from './PurchaseModal'
 import { variants, getVariantById, defaultVariantId, type NovaShellVariant } from '@/lib/variants'
 import { Download, ShoppingCart, Star } from 'lucide-react'
@@ -16,12 +17,23 @@ const CUSTOM_RANGES = {
   height: { min: 1.0,  max: 3.5,  step: 0.01 },
 }
 
+const DEBOUNCE_MS = 450
+
 export function NovaShellConfigurator() {
   const [selectedId, setSelectedId] = useState(defaultVariantId)
   const [mode, setMode] = useState<'preset' | 'custom'>('preset')
   const [customDimensions, setCustomDimensions] = useState(DEFAULT_CUSTOM_DIMS)
   const [modalMode, setModalMode] = useState<'purchase' | 'quote'>('purchase')
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // Live Onshape geometry state
+  const [onshapeData, setOnshapeData] = useState<any>(null)
+  const [onshapeLoading, setOnshapeLoading] = useState(false)
+  const [onshapeError, setOnshapeError] = useState<string | null>(null)
+  const [useLiveOnshape, setUseLiveOnshape] = useState(true) // toggle if desired later
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   const selectedVariant = getVariantById(selectedId) || variants[0]
 
@@ -40,6 +52,76 @@ export function NovaShellConfigurator() {
   }
 
   const activeVariant = mode === 'custom' ? customVariant : selectedVariant
+
+  // Fetch live geometry from Onshape (debounced)
+  const fetchOnshapeGeometry = useCallback(async (dims: typeof DEFAULT_CUSTOM_DIMS) => {
+    // Cancel any in-flight request
+    if (abortRef.current) {
+      abortRef.current.abort()
+    }
+    const controller = new AbortController()
+    abortRef.current = controller
+
+    setOnshapeLoading(true)
+    setOnshapeError(null)
+
+    try {
+      const params = new URLSearchParams({
+        width: dims.width.toFixed(3),
+        depth: dims.depth.toFixed(3),
+        height: dims.height.toFixed(3),
+      })
+
+      const res = await fetch(`/api/onshape/geometry?${params.toString()}`, {
+        signal: controller.signal,
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || `Onshape error ${res.status}`)
+      }
+
+      const data = await res.json()
+
+      if (data.success && data.raw) {
+        setOnshapeData(data)
+        setOnshapeError(null)
+      } else {
+        throw new Error(data.error || 'No geometry returned')
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') return
+      console.warn('Onshape geometry fetch failed:', err)
+      setOnshapeError(err.message || 'Failed to load live geometry')
+      // Keep previous successful geometry if any; otherwise fallback will show
+    } finally {
+      if (!controller.signal.aborted) {
+        setOnshapeLoading(false)
+      }
+    }
+  }, [])
+
+  // Debounced fetch whenever custom dimensions change and we are in custom mode
+  useEffect(() => {
+    if (mode !== 'custom' || !useLiveOnshape) return
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    debounceRef.current = setTimeout(() => {
+      fetchOnshapeGeometry(customDimensions)
+    }, DEBOUNCE_MS)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [customDimensions, mode, useLiveOnshape, fetchOnshapeGeometry])
+
+  // Initial fetch when switching into custom mode
+  useEffect(() => {
+    if (mode === 'custom' && useLiveOnshape && !onshapeData && !onshapeLoading) {
+      fetchOnshapeGeometry(customDimensions)
+    }
+  }, [mode]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelectVariant = (id: string) => {
     setMode('preset')
@@ -84,6 +166,24 @@ END-ISO-10303-21;`
     URL.revokeObjectURL(url)
   }
 
+  // Decide what to render in the fixed preview frame for Custom mode
+  const renderCustomPreview = () => {
+    // Prefer live Onshape when we have good data
+    if (useLiveOnshape && (onshapeData || onshapeLoading || onshapeError)) {
+      return (
+        <OnshapeGeometry
+          geometryData={onshapeData}
+          isLoading={onshapeLoading && !onshapeData}
+          error={onshapeError && !onshapeData ? onshapeError : null}
+          className="h-full w-full"
+        />
+      )
+    }
+
+    // Instant fallback / scaled GLTF
+    return <StaticCaseViewer dimensions={customDimensions} className="h-full w-full" />
+  }
+
   return (
     <div className="w-full">
       <div className="mx-auto max-w-5xl px-6 pb-8 pt-12 text-center md:pt-16">
@@ -103,7 +203,7 @@ END-ISO-10303-21;`
           <div id="novashell-viewer" className="lg:col-span-3">
             <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl h-[380px] sm:h-[440px] md:h-[480px] lg:h-[520px]">
               {mode === 'custom' ? (
-                <StaticCaseViewer dimensions={customDimensions} className="h-full w-full" />
+                renderCustomPreview()
               ) : (
                 <ThreeDViewer variant={activeVariant} className="h-full w-full" />
               )}
@@ -114,6 +214,11 @@ END-ISO-10303-21;`
               <div>Type II Anodize</div>
               <div>Precision CNC + Laser</div>
               <div>Universal mounting plate</div>
+              {mode === 'custom' && useLiveOnshape && (
+                <div className={onshapeData && !onshapeError ? 'text-emerald-500' : 'text-zinc-600'}>
+                  {onshapeLoading ? 'Syncing Onshape…' : onshapeData ? 'Live Onshape' : onshapeError ? 'Onshape offline' : 'Onshape ready'}
+                </div>
+              )}
             </div>
           </div>
 
@@ -181,9 +286,33 @@ END-ISO-10303-21;`
               {/* Custom Size Controls */}
               {mode === 'custom' && (
                 <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
-                  <div className="mb-4">
-                    <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
-                    <div className="text-xs text-zinc-500">Live 3D preview • Made to order</div>
+                  <div className="mb-4 flex items-start justify-between">
+                    <div>
+                      <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
+                      <div className="text-xs text-zinc-500">
+                        {useLiveOnshape ? 'Live Onshape geometry • Made to order' : 'Live preview • Made to order'}
+                      </div>
+                    </div>
+                    {useLiveOnshape && (
+                      <button
+                        onClick={() => setUseLiveOnshape(false)}
+                        className="text-[10px] text-zinc-500 hover:text-zinc-300 underline underline-offset-2"
+                        title="Fall back to fast GLTF preview"
+                      >
+                        Fast preview
+                      </button>
+                    )}
+                    {!useLiveOnshape && (
+                      <button
+                        onClick={() => {
+                          setUseLiveOnshape(true)
+                          fetchOnshapeGeometry(customDimensions)
+                        }}
+                        className="text-[10px] text-emerald-500 hover:text-emerald-400 underline underline-offset-2"
+                      >
+                        Use live Onshape
+                      </button>
+                    )}
                   </div>
 
                   {/* Live Dimension Controls */}
@@ -234,7 +363,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    Dimensions update the preview in real time.
+                    Dimensions update the preview in real time{useLiveOnshape ? ' (Onshape sync ~0.5s)' : ''}.
                   </div>
                 </div>
               )}
