@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server'
 
+const DID = 'c0783d484462993857a94bb1'
+const WID = 'd4a9f4803f10a4f65f2f8cf3'
+const EID = '7b6ee8c5ab24994b708ff864'
+
 /**
- * Fetch tessellated geometry from Onshape (values in inches)
+ * Fetch tessellated geometry from Onshape using live configuration variables.
  * GET /api/onshape/geometry?width=xx&depth=yy&height=zz
  *
- * Configuration parameters are named: Width, Depth, Height
+ * Automatically discovers the real parameterIds for Width/Depth/Height
+ * from the Part Studio configuration definition.
  */
 export async function GET(request: Request) {
   const accessKey = process.env.ONSHAPE_NOVASHELL_ACCESS_KEY
@@ -14,7 +19,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         error: 'Onshape API credentials are not configured',
-        hint: 'Add ONSHAPE_NOVASHELL_ACCESS_KEY and ONSHAPE_NOVASHELL_SECRET_KEY in Vercel Environment Variables',
+        hint: 'Add ONSHAPE_NOVASHELL_ACCESS_KEY and ONSHAPE_NOVASHELL_SECRET_KEY in Vercel',
       },
       { status: 500 }
     )
@@ -30,37 +35,92 @@ export async function GET(request: Request) {
   }
 
   const credentials = Buffer.from(`${accessKey}:${secretKey}`).toString('base64')
+  const authHeaders = {
+    Authorization: `Basic ${credentials}`,
+    Accept: 'application/json;charset=UTF-8; qs=0.09',
+  }
 
-  // Multiple formats because Onshape quantity config variables accept different syntaxes
-  const configCandidates = [
-    `Width=${width.toFixed(3)}+in;Depth=${depth.toFixed(3)}+in;Height=${height.toFixed(3)}+in`,
-    `Width=${width.toFixed(3)} inch;Depth=${depth.toFixed(3)} inch;Height=${height.toFixed(3)} inch`,
-    `Width=${width.toFixed(3)};Depth=${depth.toFixed(3)};Height=${height.toFixed(3)}`,
-    // Some older documents use lowercase or different separators
-    `Width=${width};Depth=${depth};Height=${height}`,
-  ]
+  // 1. Discover real configuration parameters
+  let configParams: any[] = []
+  try {
+    const confRes = await fetch(
+      `https://cad.onshape.com/api/v6/elements/d/${DID}/w/${WID}/e/${EID}/configuration`,
+      { headers: authHeaders }
+    )
+    if (confRes.ok) {
+      const confData = await confRes.json()
+      configParams = confData.configurationParameters || []
+    }
+  } catch (e) {
+    console.warn('Could not fetch configuration definition', e)
+  }
 
-  const did = 'c0783d484462993857a94bb1'
-  const wid = 'd4a9f4803f10a4f65f2f8cf3'
-  const eid = '7b6ee8c5ab24994b708ff864'
-  const baseUrl = `https://cad.onshape.com/api/v6/partstudios/d/${did}/w/${wid}/e/${eid}/tessellatedfaces`
+  // Helper to find a parameter by friendly name (case-insensitive)
+  const findParam = (names: string[]) => {
+    for (const name of names) {
+      const p = configParams.find(
+        (c: any) =>
+          (c.parameterName || '').toLowerCase() === name.toLowerCase() ||
+          (c.parameterId || '').toLowerCase() === name.toLowerCase()
+      )
+      if (p) return p
+    }
+    return null
+  }
 
+  const widthParam = findParam(['Width', 'width', 'W', 'Overall Width', 'Overall_Width'])
+  const depthParam = findParam(['Depth', 'depth', 'D', 'Overall Depth', 'Overall_Depth', 'Length'])
+  const heightParam = findParam(['Height', 'height', 'H', 'Overall Height', 'Overall_Height'])
+
+  // Build candidate configuration strings
+  const configCandidates: string[] = []
+
+  // A) Using discovered parameterIds + proper units (best)
+  if (widthParam && depthParam && heightParam) {
+    const wId = widthParam.parameterId
+    const dId = depthParam.parameterId
+    const hId = heightParam.parameterId
+
+    // Prefer the unit declared on the quantity parameter
+    const unit =
+      widthParam.rangeAndDefault?.units ||
+      widthParam.message?.rangeAndDefault?.message?.units ||
+      'in'
+
+    configCandidates.push(
+      `${wId}=${width.toFixed(3)}+${unit};${dId}=${depth.toFixed(3)}+${unit};${hId}=${height.toFixed(3)}+${unit}`
+    )
+    configCandidates.push(
+      `${wId}=${width.toFixed(3)};${dId}=${depth.toFixed(3)};${hId}=${height.toFixed(3)}`
+    )
+  }
+
+  // B) Friendly names (what you confirmed)
+  configCandidates.push(
+    `Width=${width.toFixed(3)}+in;Depth=${depth.toFixed(3)}+in;Height=${height.toFixed(3)}+in`
+  )
+  configCandidates.push(
+    `Width=${width.toFixed(3)}+inch;Depth=${depth.toFixed(3)}+inch;Height=${height.toFixed(3)}+inch`
+  )
+  configCandidates.push(
+    `Width=${width.toFixed(3)};Depth=${depth.toFixed(3)};Height=${height.toFixed(3)}`
+  )
+
+  // C) No configuration at all (returns default size – useful as last resort / connectivity check)
+  configCandidates.push('')
+
+  const baseUrl = `https://cad.onshape.com/api/v6/partstudios/d/${DID}/w/${WID}/e/${EID}/tessellatedfaces`
   const attempts: any[] = []
 
   for (const configString of configCandidates) {
     try {
-      const encodedConfig = encodeURIComponent(configString)
-      const url = `${baseUrl}?configuration=${encodedConfig}`
+      const url = configString
+        ? `${baseUrl}?configuration=${encodeURIComponent(configString)}`
+        : baseUrl
 
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          Authorization: `Basic ${credentials}`,
-          Accept: 'application/json;charset=UTF-8; qs=0.09',
-        },
-        // Onshape can be slow on cold tessellation
-        // @ts-ignore
-        next: { revalidate: 0 },
+        headers: authHeaders,
       })
 
       const responseText = await response.text()
@@ -68,26 +128,25 @@ export async function GET(request: Request) {
       try {
         data = JSON.parse(responseText)
       } catch {
-        // not JSON
+        /* ignore */
       }
 
       if (!response.ok) {
         attempts.push({
-          configString,
+          configString: configString || '(none)',
           status: response.status,
-          body: responseText.slice(0, 500),
+          body: responseText.slice(0, 400),
         })
         continue
       }
 
-      // Check for geometry
       const faces = data?.bodies?.[0]?.faces?.length || 0
       if (faces === 0) {
         attempts.push({
-          configString,
+          configString: configString || '(none)',
           status: 200,
-          body: 'Empty geometry (0 faces)',
-          keys: data ? Object.keys(data) : [],
+          body: '0 faces returned',
+          topKeys: data ? Object.keys(data) : [],
         })
         continue
       }
@@ -96,13 +155,18 @@ export async function GET(request: Request) {
         success: true,
         message: 'Geometry fetched',
         dimensionsIn: { width, depth, height },
-        configString,
+        configString: configString || '(default)',
         facesCount: faces,
+        discoveredParams: configParams.map((p: any) => ({
+          parameterId: p.parameterId,
+          parameterName: p.parameterName,
+          type: p.btType || p.typeName,
+        })),
         raw: data,
       })
     } catch (error) {
       attempts.push({
-        configString,
+        configString: configString || '(none)',
         error: String(error),
       })
     }
@@ -113,9 +177,15 @@ export async function GET(request: Request) {
   return NextResponse.json(
     {
       error: 'Failed to fetch geometry from Onshape',
-      hint: 'Check API keys, document access, and that Width/Depth/Height are the exact configuration parameter names in the Part Studio.',
+      hint: 'All configuration formats failed. Check the discoveredParams and attempts below.',
+      discoveredParams: configParams.map((p: any) => ({
+        parameterId: p.parameterId,
+        parameterName: p.parameterName,
+        type: p.btType || p.typeName,
+        units: p.rangeAndDefault?.units || p.message?.rangeAndDefault?.message?.units,
+      })),
       attempts,
-      document: { did, wid, eid },
+      document: { did: DID, wid: WID, eid: EID },
     },
     { status: 500 }
   )
