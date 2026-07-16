@@ -282,19 +282,15 @@ END-ISO-10303-21;`
   return (
     <div className="w-full">
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 lg:gap-10">
-          {/* Immersive taller preview with minimal overlayed title */}
-          <div id="novashell-viewer" className="lg:col-span-2">
-            <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl min-h-[550px] sm:min-h-[600px] md:min-h-[650px] lg:min-h-[calc(100vh-10rem)]">
-              {/* Minimal overlay title on preview for immersive feel */}
-              <div className="absolute inset-x-0 top-0 z-10 p-6">
-                <div className="mx-auto max-w-5xl">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-4 py-1 text-xs tracking-[2px] text-white/90 backdrop-blur-sm">
-                    MADE IN TEXAS • PREMIUM CUSTOM ALUMINUM
-                  </div>
-                  <h1 className="mt-4 text-balance text-5xl font-semibold tracking-tighter text-white drop-shadow-md md:text-6xl">NovaShell</h1>
-                  <p className="mt-2 max-w-md text-lg text-white/90">Precision custom aluminum enclosures for makers, engineers, and OEMs.<br />Built to last. Ready to ship.</p>
-                </div>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr,1fr,1fr] lg:gap-10">
+          {/* Immersive taller preview with subtle single-ribbon overlay at top */}
+          <div id="novashell-viewer" className="lg:col-span-1">
+            <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl min-h-[500px] sm:min-h-[550px] md:min-h-[600px] lg:min-h-[calc(100vh-14rem)]">
+              {/* Thin ribbon overlay - small, subtle, just below header area */}
+              <div className="absolute top-0 left-0 right-0 z-10 bg-zinc-950/85 backdrop-blur border-b border-white/10 px-6 py-2 text-center">
+                <div className="text-[9px] tracking-[2px] text-white/70">MADE IN TEXAS • PREMIUM CUSTOM ALUMINUM</div>
+                <div className="text-xl font-semibold tracking-tighter text-white mt-0.5">NovaShell</div>
+                <div className="text-[9px] text-white/80">Precision custom aluminum enclosures for makers, engineers, and OEMs. Built to last. Ready to ship.</div>
               </div>
 
               {mode === 'custom' ? renderCustomPreview() : (
