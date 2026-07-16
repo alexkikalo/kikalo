@@ -342,9 +342,11 @@ END-ISO-10303-21;`
             )}
           </div>
 
-          {/* Controls column */}
+          {/* Controls column - subtle scrollbar */}
           <div className="lg:col-span-1 h-full">
-            <div className="sticky top-6 h-full max-h-[520px] overflow-y-auto space-y-6 pr-1">
+            <div className="sticky top-6 h-full max-h-[520px] overflow-y-auto space-y-6 pr-1
+              [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-700
+              [&::-webkit-scrollbar-track]:bg-zinc-900">
               {/* Mode Toggle */}
               <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1">
                 <button
@@ -630,9 +632,11 @@ END-ISO-10303-21;`
             </div>
           </div>
 
-          {/* Checkout column - fixed max height + scrolls internally when content (ports) exceeds */}
+          {/* Checkout column - subtle scrollbar */}
           <div className="lg:col-span-1 h-full">
-            <div className="sticky top-6 h-full max-h-[520px] overflow-y-auto">
+            <div className="sticky top-6 h-full max-h-[520px] overflow-y-auto
+              [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-700
+              [&::-webkit-scrollbar-track]:bg-zinc-900">
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
                 <div className="mb-4">
                   <div className="text-xs tracking-[1.5px] text-zinc-500">SELECTED</div>
