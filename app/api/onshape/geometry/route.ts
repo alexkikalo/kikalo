@@ -4,11 +4,11 @@ const DID = 'c0783d484462993857a94bb1'
 const WID = 'd4a9f4803f10a4f65f2f8cf3'
 const EID = '7b6ee8c5ab24994b708ff864'
 
-// Exact ranges from the Onshape configuration variables
+// Exact ranges from the Onshape configuration variables (updated 2026-07-16)
 const ONSHAPE_RANGES = {
-  width:  { min: 2, max: 6 },
-  depth:  { min: 2, max: 3 },
-  height: { min: 2, max: 6 },
+  width:  { min: 2, max: 10 },
+  depth:  { min: 2, max: 10 },
+  height: { min: 2, max: 10 },
 }
 
 /**
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url)
   let width = parseFloat(searchParams.get('width') || '4.72')
-  let depth = parseFloat(searchParams.get('depth') || '3.0')
+  let depth = parseFloat(searchParams.get('depth') || '3.74')
   let height = parseFloat(searchParams.get('height') || '2.0')
 
   if ([width, depth, height].some((v) => isNaN(v) || v <= 0)) {
@@ -55,7 +55,6 @@ export async function GET(request: Request) {
   }
 
   // Confirmed working formats for quantity config variables (LENGTH / inch).
-  // Onshape currentConfiguration uses expression style "2 in".
   // Preferred URL form is parameterId=value+unit
   const configCandidates = [
     `Width=${width.toFixed(3)}+inch;Depth=${depth.toFixed(3)}+inch;Height=${height.toFixed(3)}+inch`,
