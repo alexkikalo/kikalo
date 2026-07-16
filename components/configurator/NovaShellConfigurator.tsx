@@ -6,7 +6,7 @@ import { StaticCaseViewer } from './StaticCaseViewer'
 import { OnshapeGeometry } from './OnshapeGeometry'
 import { PurchaseModal } from './PurchaseModal'
 import { variants, getVariantById, defaultVariantId, type NovaShellVariant } from '@/lib/variants'
-import { Download, ShoppingCart, Star, Plus, Trash2, RotateCw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react'
+import { Download, ShoppingCart, Star, Plus, Trash2, RotateCw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Box } from 'lucide-react'
 
 // Default custom dimensions in inches (inside Onshape config ranges)
 const DEFAULT_CUSTOM_DIMS = { width: 4.72, depth: 3.74, height: 2.0 }
@@ -228,7 +228,7 @@ export function NovaShellConfigurator() {
     const content = `ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('NovaShell ${variant.name} STEP export placeholder'),'2;1');
-FILE_NAME('${variant.stepFileName}','${new Date().toISOString()}',('Kikalo Engineering'),('NovaShell by Kikalo.net'),'','SolidWorks / Onshape export','');
+FILE_NAME='${variant.stepFileName}','${new Date().toISOString()}',('Kikalo Engineering'),('NovaShell by Kikalo.net'),'','SolidWorks / Onshape export','');
 FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 }'));
 ENDSEC;
 DATA;
@@ -282,12 +282,14 @@ END-ISO-10303-21;`
   return (
     <div className="w-full">
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-8">
-        {/* Simplified single-line title ribbon */}
-        <div className="mb-6">
-          <div className="bg-zinc-950/90 backdrop-blur-sm border border-white/10 rounded-2xl px-8 py-3 text-center">
-            <div className="text-lg font-semibold tracking-tighter text-white">
-              NovaShell <span className="text-white/50">|</span> Precision custom aluminum enclosures for makers, engineers, and OEMs. Built to last. Ready to ship.
-            </div>
+        {/* Header - PREP style */}
+        <div className="mb-8 flex items-center gap-4">
+          <div className="rounded-2xl bg-zinc-800 p-3">
+            <Box className="h-7 w-7 text-white" />
+          </div>
+          <div>
+            <div className="text-3xl font-semibold tracking-tighter">NovaShell</div>
+            <div className="text-sm text-zinc-400">Premium custom aluminum enclosures • Made in North Texas</div>
           </div>
         </div>
 
