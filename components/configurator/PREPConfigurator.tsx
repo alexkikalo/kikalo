@@ -189,8 +189,8 @@ export function PREPConfigurator() {
             </div>
           </div>
 
-          {/* Design vs Process Toggle */}
-          <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1 self-start lg:self-auto">
+          {/* Design vs Process Toggle - with buffer above on mobile */}
+          <div className="mt-4 lg:mt-0 flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1 self-start lg:self-auto">
             <button
               onClick={() => switchFmeaType('design')}
               className={`flex-1 rounded-xl px-5 py-2 text-sm font-medium transition ${isDesign 
