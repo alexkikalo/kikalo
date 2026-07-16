@@ -282,13 +282,11 @@ END-ISO-10303-21;`
   return (
     <div className="w-full">
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-8">
-        {/* Full-width ribbon exactly aligned with left of preview to right of checkout */}
+        {/* Simplified single-line title ribbon */}
         <div className="mb-6">
-          <div className="bg-zinc-950/90 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-2">
-            <div className="text-center">
-              <div className="text-[7px] tracking-[3px] text-white/60">MADE IN TEXAS • PREMIUM CUSTOM ALUMINUM</div>
-              <div className="text-xl font-semibold tracking-tighter text-white -mt-0.5">NovaShell</div>
-              <div className="text-[8px] text-white/70 -mt-1">Precision custom aluminum enclosures for makers, engineers, and OEMs. Built to last. Ready to ship.</div>
+          <div className="bg-zinc-950/90 backdrop-blur-sm border border-white/10 rounded-2xl px-8 py-3 text-center">
+            <div className="text-lg font-semibold tracking-tighter text-white">
+              NovaShell <span className="text-white/50">|</span> Precision custom aluminum enclosures for makers, engineers, and OEMs. Built to last. Ready to ship.
             </div>
           </div>
         </div>
@@ -342,7 +340,7 @@ END-ISO-10303-21;`
             )}
           </div>
 
-          {/* Controls column - subtle scrollbar */}
+          {/* Controls column */}
           <div className="lg:col-span-1 h-full">
             <div className="sticky top-6 h-full max-h-[520px] overflow-y-auto space-y-6 pr-1
               [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-700
@@ -632,7 +630,7 @@ END-ISO-10303-21;`
             </div>
           </div>
 
-          {/* Checkout column - subtle scrollbar */}
+          {/* Checkout column */}
           <div className="lg:col-span-1 h-full">
             <div className="sticky top-6 h-full max-h-[520px] overflow-y-auto
               [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-700
