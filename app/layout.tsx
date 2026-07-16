@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Kikalo | Premium American Manufacturing & NovaShell Enclosures",
-  description: "Precision modular aluminum enclosures and custom engineering. NovaShell — ready-to-ship and fully custom options. Made in North Texas.",
+  title: "Kikalo | Tools for Builders · American Engineering",
+  description: "Premium modular enclosures, guided engineering software, and durable tools for makers, engineers, and teams. Made in North Texas.",
   icons: {
     icon: "/images/Color.png",
     shortcut: "/images/Color.png",
