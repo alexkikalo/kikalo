@@ -12,9 +12,12 @@ interface OnshapeGeometryProps {
   className?: string
 }
 
+// Onshape tessellatedfaces returns meters. Convert to inches for our scene scale.
+const M_TO_IN = 39.37007874
+
 /**
- * Renders real tessellated geometry from Onshape (values in inches).
- * Designed to fill a fixed parent frame (h-full w-full).
+ * Renders real tessellated geometry from Onshape.
+ * Coordinates arrive in meters → we scale to inches and keep Z-up → Y-up rotation.
  */
 export function OnshapeGeometry({ geometryData, isLoading, error, className = '' }: OnshapeGeometryProps) {
   const realGeometry = useMemo(() => {
@@ -34,9 +37,8 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
             if (!facet.vertices || facet.vertices.length !== 3) return
 
             facet.vertices.forEach((v: any) => {
-              // Onshape returns inches. Three.js Y-up.
-              // Many CAD exports are Z-up; we rotate later if needed.
-              allVertices.push(v.x, v.y, v.z)
+              // meters → inches
+              allVertices.push(v.x * M_TO_IN, v.y * M_TO_IN, v.z * M_TO_IN)
             })
 
             faceCount++
@@ -89,7 +91,7 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
     return (
       <div className={`relative h-full w-full overflow-hidden ${className}`}>
         <Canvas
-          camera={{ position: [0.28, 0.22, 0.28], fov: 42 }}
+          camera={{ position: [8, 6, 8], fov: 42 }}
           style={{ background: 'transparent', width: '100%', height: '100%' }}
           gl={{ antialias: true, alpha: true }}
         >
@@ -99,8 +101,7 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
 
           <Center>
             {/*
-              If the tessellation arrives Z-up (common), rotate so Z becomes Y-up.
-              If it already looks correct, this can be removed or flipped.
+              Onshape is Z-up. Rotate -90° around X so Z becomes world Y (up).
             */}
             <group rotation={[-Math.PI / 2, 0, 0]}>
               <primitive object={realGeometry.mesh} />
@@ -116,11 +117,15 @@ export function OnshapeGeometry({ geometryData, isLoading, error, className = ''
         <div className="absolute bottom-3 right-3 rounded bg-black/60 px-2 py-0.5 text-[10px] text-emerald-400">
           {realGeometry.faceCount.toLocaleString()} faces
         </div>
+        {geometryData?.clamped && (
+          <div className="absolute bottom-3 left-3 rounded bg-amber-500/20 px-2 py-0.5 text-[10px] text-amber-300">
+            Clamped to Onshape limits
+          </div>
+        )}
       </div>
     )
   }
 
-  // Fallback placeholder while waiting for first successful load
   return (
     <div className={`relative h-full w-full overflow-hidden ${className}`}>
       <Canvas
