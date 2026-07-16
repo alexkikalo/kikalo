@@ -17,7 +17,7 @@ const CUSTOM_RANGES = {
   height: { min: 1.0,  max: 3.5,  step: 0.01 },
 }
 
-const DEBOUNCE_MS = 450
+const DEBOUNCE_MS = 500
 
 export function NovaShellConfigurator() {
   const [selectedId, setSelectedId] = useState(defaultVariantId)
@@ -30,7 +30,8 @@ export function NovaShellConfigurator() {
   const [onshapeData, setOnshapeData] = useState<any>(null)
   const [onshapeLoading, setOnshapeLoading] = useState(false)
   const [onshapeError, setOnshapeError] = useState<string | null>(null)
-  const [useLiveOnshape, setUseLiveOnshape] = useState(true) // toggle if desired later
+  const [onshapeDetail, setOnshapeDetail] = useState<string | null>(null)
+  const [useLiveOnshape, setUseLiveOnshape] = useState(true)
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -53,17 +54,14 @@ export function NovaShellConfigurator() {
 
   const activeVariant = mode === 'custom' ? customVariant : selectedVariant
 
-  // Fetch live geometry from Onshape (debounced)
   const fetchOnshapeGeometry = useCallback(async (dims: typeof DEFAULT_CUSTOM_DIMS) => {
-    // Cancel any in-flight request
-    if (abortRef.current) {
-      abortRef.current.abort()
-    }
+    if (abortRef.current) abortRef.current.abort()
     const controller = new AbortController()
     abortRef.current = controller
 
     setOnshapeLoading(true)
     setOnshapeError(null)
+    setOnshapeDetail(null)
 
     try {
       const params = new URLSearchParams({
@@ -76,24 +74,27 @@ export function NovaShellConfigurator() {
         signal: controller.signal,
       })
 
+      const payload = await res.json().catch(() => ({}))
+
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || `Onshape error ${res.status}`)
+        const msg = payload.error || `Onshape error ${res.status}`
+        const detail = payload.hint || payload.details || (payload.attempts ? JSON.stringify(payload.attempts[0], null, 0).slice(0, 180) : null)
+        throw new Error(msg + (detail ? ` — ${detail}` : ''))
       }
 
-      const data = await res.json()
-
-      if (data.success && data.raw) {
-        setOnshapeData(data)
+      if (payload.success && payload.raw) {
+        setOnshapeData(payload)
         setOnshapeError(null)
+        setOnshapeDetail(null)
       } else {
-        throw new Error(data.error || 'No geometry returned')
+        throw new Error(payload.error || 'No geometry returned from Onshape')
       }
     } catch (err: any) {
       if (err.name === 'AbortError') return
       console.warn('Onshape geometry fetch failed:', err)
       setOnshapeError(err.message || 'Failed to load live geometry')
-      // Keep previous successful geometry if any; otherwise fallback will show
+      setOnshapeDetail(null)
+      // Keep any previous successful onshapeData so we don't blank the view
     } finally {
       if (!controller.signal.aborted) {
         setOnshapeLoading(false)
@@ -101,7 +102,7 @@ export function NovaShellConfigurator() {
     }
   }, [])
 
-  // Debounced fetch whenever custom dimensions change and we are in custom mode
+  // Debounced fetch on dimension / mode change
   useEffect(() => {
     if (mode !== 'custom' || !useLiveOnshape) return
 
@@ -116,7 +117,7 @@ export function NovaShellConfigurator() {
     }
   }, [customDimensions, mode, useLiveOnshape, fetchOnshapeGeometry])
 
-  // Initial fetch when switching into custom mode
+  // Initial fetch when entering custom
   useEffect(() => {
     if (mode === 'custom' && useLiveOnshape && !onshapeData && !onshapeLoading) {
       fetchOnshapeGeometry(customDimensions)
@@ -127,8 +128,7 @@ export function NovaShellConfigurator() {
     setMode('preset')
     setSelectedId(id)
     if (window.innerWidth < 1024) {
-      const viewer = document.getElementById('novashell-viewer')
-      viewer?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      document.getElementById('novashell-viewer')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }
 
@@ -140,7 +140,10 @@ export function NovaShellConfigurator() {
     if (mode !== 'custom') setMode('custom')
   }
 
-  const openPurchase = () => { setModalMode('purchase'); setIsModalOpen(true) }
+  const openPurchase = () => {
+    setModalMode('purchase')
+    setIsModalOpen(true)
+  }
 
   const handleDownloadSTEP = (variant: NovaShellVariant) => {
     const content = `ISO-10303-21;
@@ -151,7 +154,7 @@ FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 }'));
 ENDSEC;
 DATA;
 #1 = APPLICATION_CONTEXT('mechanical design');
-/* This is a placeholder. Replace with real STEP export from Onshape/SolidWorks. */
+/* Placeholder — replace with real STEP from Onshape */
 ENDSEC;
 END-ISO-10303-21;`
 
@@ -166,22 +169,35 @@ END-ISO-10303-21;`
     URL.revokeObjectURL(url)
   }
 
-  // Decide what to render in the fixed preview frame for Custom mode
+  // Always keep a solid preview. Live Onshape is preferred only when we have good data.
+  // On any error or while first loading → show the fast GLTF so the UI never breaks.
   const renderCustomPreview = () => {
-    // Prefer live Onshape when we have good data
-    if (useLiveOnshape && (onshapeData || onshapeLoading || onshapeError)) {
+    const hasLive = useLiveOnshape && onshapeData && !onshapeError
+
+    if (hasLive) {
       return (
         <OnshapeGeometry
           geometryData={onshapeData}
-          isLoading={onshapeLoading && !onshapeData}
-          error={onshapeError && !onshapeData ? onshapeError : null}
+          isLoading={false}
+          error={null}
           className="h-full w-full"
         />
       )
     }
 
-    // Instant fallback / scaled GLTF
-    return <StaticCaseViewer dimensions={customDimensions} className="h-full w-full" />
+    // Fast fallback (always works)
+    return (
+      <div className="relative h-full w-full">
+        <StaticCaseViewer dimensions={customDimensions} className="h-full w-full" />
+        {useLiveOnshape && onshapeLoading && (
+          <div className="absolute inset-x-0 top-0 flex justify-center pt-3 pointer-events-none">
+            <div className="rounded-full bg-black/70 px-3 py-1 text-[10px] text-zinc-300 backdrop-blur">
+              Syncing Onshape…
+            </div>
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -199,12 +215,10 @@ END-ISO-10303-21;`
 
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
-          {/* Fixed-size preview frame — same size for both Preset and Custom */}
+          {/* Fixed-size preview frame */}
           <div id="novashell-viewer" className="lg:col-span-3">
             <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl h-[380px] sm:h-[440px] md:h-[480px] lg:h-[520px]">
-              {mode === 'custom' ? (
-                renderCustomPreview()
-              ) : (
+              {mode === 'custom' ? renderCustomPreview() : (
                 <ThreeDViewer variant={activeVariant} className="h-full w-full" />
               )}
             </div>
@@ -215,11 +229,37 @@ END-ISO-10303-21;`
               <div>Precision CNC + Laser</div>
               <div>Universal mounting plate</div>
               {mode === 'custom' && useLiveOnshape && (
-                <div className={onshapeData && !onshapeError ? 'text-emerald-500' : 'text-zinc-600'}>
-                  {onshapeLoading ? 'Syncing Onshape…' : onshapeData ? 'Live Onshape' : onshapeError ? 'Onshape offline' : 'Onshape ready'}
+                <div className={
+                  onshapeData && !onshapeError
+                    ? 'text-emerald-500'
+                    : onshapeError
+                      ? 'text-amber-500'
+                      : 'text-zinc-500'
+                }>
+                  {onshapeLoading
+                    ? 'Syncing Onshape…'
+                    : onshapeData && !onshapeError
+                      ? 'Live Onshape'
+                      : onshapeError
+                        ? 'Onshape offline (using fast preview)'
+                        : 'Onshape ready'}
                 </div>
               )}
             </div>
+
+            {/* Debug error (only when live mode is on and it failed) */}
+            {mode === 'custom' && useLiveOnshape && onshapeError && (
+              <div className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-left text-[11px] text-amber-200/90">
+                <div className="font-medium text-amber-400 mb-1">Onshape live geometry unavailable</div>
+                <div className="text-zinc-400 break-words">{onshapeError}</div>
+                <div className="mt-2 text-zinc-500">
+                  The fast preview above is still live. Common fixes: check Vercel env vars
+                  <code className="mx-1 text-zinc-300">ONSHAPE_NOVASHELL_ACCESS_KEY</code> /
+                  <code className="mx-1 text-zinc-300">ONSHAPE_NOVASHELL_SECRET_KEY</code>,
+                  document share permissions, or exact config parameter names.
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-2">
@@ -290,19 +330,17 @@ END-ISO-10303-21;`
                     <div>
                       <div className="text-sm font-medium tracking-widest text-zinc-400">CUSTOM SIZE</div>
                       <div className="text-xs text-zinc-500">
-                        {useLiveOnshape ? 'Live Onshape geometry • Made to order' : 'Live preview • Made to order'}
+                        {useLiveOnshape ? 'Live Onshape when available • Made to order' : 'Fast GLTF preview • Made to order'}
                       </div>
                     </div>
-                    {useLiveOnshape && (
+                    {useLiveOnshape ? (
                       <button
                         onClick={() => setUseLiveOnshape(false)}
                         className="text-[10px] text-zinc-500 hover:text-zinc-300 underline underline-offset-2"
-                        title="Fall back to fast GLTF preview"
                       >
-                        Fast preview
+                        Fast only
                       </button>
-                    )}
-                    {!useLiveOnshape && (
+                    ) : (
                       <button
                         onClick={() => {
                           setUseLiveOnshape(true)
@@ -310,16 +348,14 @@ END-ISO-10303-21;`
                         }}
                         className="text-[10px] text-emerald-500 hover:text-emerald-400 underline underline-offset-2"
                       >
-                        Use live Onshape
+                        Try live Onshape
                       </button>
                     )}
                   </div>
 
-                  {/* Live Dimension Controls */}
                   <div className="space-y-5">
                     {(['width', 'depth', 'height'] as const).map((key) => {
                       const label = key === 'width' ? 'Width' : key === 'depth' ? 'Depth' : 'Height'
-                      const unit = 'in'
                       const value = customDimensions[key]
                       const range = CUSTOM_RANGES[key]
 
@@ -327,12 +363,10 @@ END-ISO-10303-21;`
                         <div key={key}>
                           <div className="flex items-center justify-between mb-1.5">
                             <div className="text-sm font-medium text-white">{label}</div>
-                            <div className="font-mono text-sm tabular-nums text-white">{value.toFixed(2)} {unit}</div>
+                            <div className="font-mono text-sm tabular-nums text-white">{value.toFixed(2)} in</div>
                           </div>
                           <div className="flex items-center gap-3">
                             <input
-                              id={`${key}-range`}
-                              name={`${key}-range`}
                               type="range"
                               min={range.min}
                               max={range.max}
@@ -342,14 +376,17 @@ END-ISO-10303-21;`
                               className="flex-1 accent-white"
                             />
                             <input
-                              id={`${key}-number`}
-                              name={`${key}-number`}
                               type="number"
                               min={range.min}
                               max={range.max}
                               step={range.step}
                               value={value}
-                              onChange={(e) => updateDimension(key, Math.max(range.min, Math.min(range.max, parseFloat(e.target.value) || range.min)))}
+                              onChange={(e) =>
+                                updateDimension(
+                                  key,
+                                  Math.max(range.min, Math.min(range.max, parseFloat(e.target.value) || range.min))
+                                )
+                              }
                               className="w-20 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-right font-mono text-sm text-white focus:border-white/60 focus:outline-none"
                             />
                           </div>
@@ -363,7 +400,7 @@ END-ISO-10303-21;`
                   </div>
 
                   <div className="mt-4 text-[10px] text-zinc-500">
-                    Dimensions update the preview in real time{useLiveOnshape ? ' (Onshape sync ~0.5s)' : ''}.
+                    Dimensions update the preview instantly. Live Onshape syncs after you pause.
                   </div>
                 </div>
               )}
