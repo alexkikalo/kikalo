@@ -48,14 +48,14 @@ export default function KikaloHome() {
             </Link>
 
             <a
-              href="#capabilities"
+              href="/fmea"
               className="inline-flex items-center gap-3 rounded-2xl border border-white/20 px-8 py-4 text-base font-medium transition hover:bg-white/10 text-white"
             >
-              Explore Capabilities
+              Smart FMEA (Coming Soon)
             </a>
           </div>
 
-          <p className="mt-6 text-xs text-zinc-300">NovaShell preconfigured sizes ship in 1–7 days • Full custom available</p>
+          {/*<p className="mt-6 text-xs text-zinc-300">NovaShell preconfigured sizes ship in 1–7 days • Full custom available</p>*/}
         </div>
       </section>
 
@@ -124,7 +124,7 @@ export default function KikaloHome() {
       </section>
 
       <footer className="border-t border-white/10 py-10 text-center text-xs text-zinc-500">
-        © {new Date().getFullYear()} Kikalo • North Texas • Precision American Manufacturing
+        © {new Date().getFullYear()} Kikalo
       </footer>
     </main>
   );
