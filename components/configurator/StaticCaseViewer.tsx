@@ -9,6 +9,7 @@ interface StaticCaseViewerProps {
     depth: number
     height: number
   }
+  className?: string
 }
 
 /**
@@ -39,12 +40,12 @@ function CaseModel({ dimensions }: { dimensions?: { width: number; depth: number
   )
 }
 
-export function StaticCaseViewer({ dimensions }: StaticCaseViewerProps) {
+export function StaticCaseViewer({ dimensions, className = '' }: StaticCaseViewerProps) {
   return (
-    <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950">
+    <div className={`relative h-full w-full overflow-hidden ${className}`}>
       <Canvas
         camera={{ position: [0.18, 0.14, 0.18], fov: 45 }}
-        style={{ background: 'transparent' }}
+        style={{ background: 'transparent', width: '100%', height: '100%' }}
         gl={{ antialias: true, alpha: true }}
       >
         <ambientLight intensity={0.65} />
@@ -57,6 +58,10 @@ export function StaticCaseViewer({ dimensions }: StaticCaseViewerProps) {
 
         <OrbitControls enableDamping dampingFactor={0.12} />
       </Canvas>
+
+      <div className="absolute left-4 top-4 rounded-full bg-black/60 px-3 py-1 text-[10px] font-mono tracking-[1.5px] text-zinc-400 backdrop-blur">
+        CUSTOM PREVIEW
+      </div>
     </div>
   )
 }
