@@ -16,10 +16,10 @@ const ONSHAPE_RANGES = {
  * GET /api/onshape/geometry?width=xx&depth=yy&height=zz
  *   [&hdmi=true&hdmiX=0.5&hdmiY=0.2]  (inches)
  *
- * Parameter IDs (confirmed):
- *   Width, Depth, Height (LENGTH / inch)
- *   Front-HDMI-01-X, Front-HDMI-01-Y (LENGTH / inch)
- *   Front-HDMI-01 (boolean checkbox)
+ * Parameter IDs (from /api/onshape/configuration):
+ *   Width, Depth, Height
+ *   Front_HDMI_01_X, Front_HDMI_01_Y  (LENGTH / inch)
+ *   Front_HDMI_01                     (boolean)
  * Tessellation is returned in meters.
  */
 export async function GET(request: Request) {
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
   let depth = parseFloat(searchParams.get('depth') || '3.74')
   let height = parseFloat(searchParams.get('height') || '2.0')
 
-  // Optional HDMI cutout parameters (Front-HDMI-01)
+  // Optional HDMI cutout parameters (Front_HDMI_01*)
   const hdmiEnabled = searchParams.get('hdmi') === 'true'
   let hdmiX = parseFloat(searchParams.get('hdmiX') || '0')
   let hdmiY = parseFloat(searchParams.get('hdmiY') || '0')
@@ -66,23 +66,18 @@ export async function GET(request: Request) {
     Accept: 'application/json;charset=UTF-8; qs=0.09',
   }
 
-  // Multiple candidate formats for the HDMI portion.
-  // Onshape can be picky about boolean spelling and length unit syntax.
+  // Use the exact parameterIds returned by /api/onshape/configuration
   const x = hdmiX.toFixed(3)
   const y = hdmiY.toFixed(3)
   const boolVal = hdmiEnabled ? 'true' : 'false'
 
   const hdmiParts = [
-    // Most common working form
-    `Front-HDMI-01=${boolVal};Front-HDMI-01-X=${x}+inch;Front-HDMI-01-Y=${y}+inch`,
-    // Alternate unit
-    `Front-HDMI-01=${boolVal};Front-HDMI-01-X=${x}+in;Front-HDMI-01-Y=${y}+in`,
-    // Space before unit
-    `Front-HDMI-01=${boolVal};Front-HDMI-01-X=${x} inch;Front-HDMI-01-Y=${y} inch`,
-    // No unit (rely on default unit of the config variable)
-    `Front-HDMI-01=${boolVal};Front-HDMI-01-X=${x};Front-HDMI-01-Y=${y}`,
-    // Capitalized boolean (some older examples used this)
-    `Front-HDMI-01=${hdmiEnabled ? 'True' : 'False'};Front-HDMI-01-X=${x}+inch;Front-HDMI-01-Y=${y}+inch`,
+    // Primary form matching documented Onshape format
+    `Front_HDMI_01=${boolVal};Front_HDMI_01_X=${x}+inch;Front_HDMI_01_Y=${y}+inch`,
+    // Alternate unit spelling
+    `Front_HDMI_01=${boolVal};Front_HDMI_01_X=${x}+in;Front_HDMI_01_Y=${y}+in`,
+    // No unit (fallback)
+    `Front_HDMI_01=${boolVal};Front_HDMI_01_X=${x};Front_HDMI_01_Y=${y}`,
   ]
 
   // Base dimension formats that already work for Width/Depth/Height
