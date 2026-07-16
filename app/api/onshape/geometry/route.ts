@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server'
 /**
  * Fetch tessellated geometry from Onshape (values in inches)
  * GET /api/onshape/geometry?width=xx&depth=yy&height=zz
+ *
+ * Configuration parameters are named: Width, Depth, Height
  */
 export async function GET(request: Request) {
   const accessKey = process.env.ONSHAPE_NOVASHELL_ACCESS_KEY
@@ -22,48 +24,65 @@ export async function GET(request: Request) {
 
   const credentials = Buffer.from(`${accessKey}:${secretKey}`).toString('base64')
 
-  // Build configuration string (values already in inches)
-  const configString = `Width=${width.toFixed(3)};Depth=${depth.toFixed(3)};Height=${height.toFixed(3)}`
-  const encodedConfig = encodeURIComponent(configString)
+  // Prefer unit-aware string (common for quantity config variables)
+  // Fallback formats are tried if the first fails.
+  const configCandidates = [
+    `Width=${width.toFixed(3)}+in;Depth=${depth.toFixed(3)}+in;Height=${height.toFixed(3)}+in`,
+    `Width=${width.toFixed(3)} inch;Depth=${depth.toFixed(3)} inch;Height=${height.toFixed(3)} inch`,
+    `Width=${width.toFixed(3)};Depth=${depth.toFixed(3)};Height=${height.toFixed(3)}`,
+  ]
 
-  try {
-    const url = `https://cad.onshape.com/api/v6/partstudios/d/c0783d484462993857a94bb1/w/d4a9f4803f10a4f65f2f8cf3/e/7b6ee8c5ab24994b708ff864/tessellatedfaces?configuration=${encodedConfig}`
+  const baseUrl = 'https://cad.onshape.com/api/v6/partstudios/d/c0783d484462993857a94bb1/w/d4a9f4803f10a4f65f2f8cf3/e/7b6ee8c5ab24994b708ff864/tessellatedfaces'
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-        'Accept': 'application/json;charset=UTF-8; qs=0.09',
-      },
-    })
+  let lastError: any = null
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      return NextResponse.json(
-        {
-          error: 'Failed to fetch geometry from Onshape',
-          status: response.status,
-          details: errorText,
+  for (const configString of configCandidates) {
+    try {
+      const encodedConfig = encodeURIComponent(configString)
+      const url = `${baseUrl}?configuration=${encodedConfig}`
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Accept': 'application/json;charset=UTF-8; qs=0.09',
         },
-        { status: response.status }
-      )
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        lastError = { status: response.status, details: errorText, configString }
+        continue // try next format
+      }
+
+      const data = await response.json()
+
+      // Sanity check: we got some geometry
+      const faces = data.bodies?.[0]?.faces?.length || 0
+      if (faces === 0) {
+        lastError = { status: 200, details: 'Empty geometry returned', configString }
+        continue
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Geometry fetched',
+        dimensionsIn: { width, depth, height },
+        configString,
+        facesCount: faces,
+        raw: data,
+      })
+    } catch (error) {
+      lastError = { details: String(error), configString }
     }
-
-    const data = await response.json()
-
-    return NextResponse.json({
-      success: true,
-      message: 'Geometry fetched',
-      dimensionsIn: { width, depth, height },
-      configString,
-      facesCount: data.bodies?.[0]?.faces?.length || 0,
-      raw: data,
-    })
-  } catch (error) {
-    console.error('Onshape geometry error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch geometry', details: String(error) },
-      { status: 500 }
-    )
   }
+
+  console.error('Onshape geometry error (all formats failed):', lastError)
+  return NextResponse.json(
+    {
+      error: 'Failed to fetch geometry from Onshape',
+      details: lastError,
+    },
+    { status: 500 }
+  )
 }
