@@ -282,7 +282,7 @@ END-ISO-10303-21;`
   return (
     <div className="w-full">
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-8">
-        {/* Full-width ribbon exactly aligned with left of preview column to right of checkout column */}
+        {/* Full-width ribbon exactly aligned with left of preview to right of checkout */}
         <div className="mb-6">
           <div className="bg-zinc-950/90 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-2">
             <div className="text-center">
@@ -293,10 +293,11 @@ END-ISO-10303-21;`
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr,1fr,1fr] lg:gap-10">
-          {/* Tall preview filling the blue highlighted area, model matches frame exactly */}
-          <div id="novashell-viewer" className="lg:col-span-1">
-            <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl min-h-[520px] sm:min-h-[580px] md:min-h-[650px] lg:min-h-[calc(100vh-11rem)]">
+        {/* Grid with consistent tall column backgrounds from bottom of ribbon to above footer */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr,1fr,1fr] lg:gap-10 min-h-[calc(100vh-13rem)] items-stretch">
+          {/* Preview column - tall background */}
+          <div className="lg:col-span-1 h-full">
+            <div className="relative h-full w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl">
               {mode === 'custom' ? renderCustomPreview() : (
                 <ThreeDViewer variant={activeVariant} className="h-full w-full" />
               )}
@@ -326,7 +327,7 @@ END-ISO-10303-21;`
               )}
             </div>
 
-            {/* Debug error (only when live mode is on and it failed) */}
+            {/* Debug error */}
             {mode === 'custom' && useLiveOnshape && onshapeError && (
               <div className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-left text-[11px] text-amber-200/90">
                 <div className="font-medium text-amber-400 mb-1">Onshape live geometry unavailable</div>
@@ -341,9 +342,9 @@ END-ISO-10303-21;`
             )}
           </div>
 
-          {/* Controls Column - scrolls if content exceeds viewport height */}
+          {/* Controls column - tall background via h-full + sticky content */}
           <div className="lg:col-span-1 h-full">
-            <div className="sticky top-6 max-h-[calc(100vh-8rem)] overflow-y-auto space-y-6 pr-1">
+            <div className="sticky top-6 h-full max-h-[calc(100vh-10rem)] overflow-y-auto space-y-6 pr-1">
               {/* Mode Toggle */}
               <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1">
                 <button
@@ -360,7 +361,7 @@ END-ISO-10303-21;`
                 </button>
               </div>
 
-              {/* Preset Sizes Grid */}
+              {/* Preset Sizes */}
               {mode === 'preset' && (
                 <div>
                   <div className="mb-3 flex items-center justify-between px-1">
@@ -485,7 +486,7 @@ END-ISO-10303-21;`
                     </div>
                   </div>
 
-                  {/* FRONT PORTS section */}
+                  {/* FRONT PORTS */}
                   <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
                     <div className="mb-4 flex items-start justify-between gap-3">
                       <div>
@@ -629,10 +630,9 @@ END-ISO-10303-21;`
             </div>
           </div>
 
-          {/* Checkout Column - wraps container height */}
+          {/* Checkout column - tall background */}
           <div className="lg:col-span-1 h-full">
             <div className="sticky top-6 h-full">
-              {/* Selected / Summary Card */}
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
                 <div className="mb-4">
                   <div className="text-xs tracking-[1.5px] text-zinc-500">SELECTED</div>
