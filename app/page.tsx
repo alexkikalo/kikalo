@@ -118,15 +118,15 @@ export default function KikaloHome() {
               </Link>
             </div>
 
-            {/* Smart FMEA card */}
+            {/* PREP FMEA card - updated */}
             <div className="rounded-3xl border border-white/10 bg-zinc-950/60 p-8 flex flex-col">
               <div className="flex items-center gap-2 mb-2">
-                <div className="font-semibold text-xl">Smart FMEA</div>
-                <span className="rounded-full border border-white/20 bg-white/5 px-2 py-0.5 text-[10px] font-medium tracking-wider text-zinc-400">COMING SOON</span>
+                <div className="font-semibold text-xl">PREP</div>
+                <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium tracking-wider text-blue-400">COMING SOON</span>
               </div>
-              <div className="text-xs tracking-wider text-zinc-500 mb-4">GUIDED DFMEA · PFMEA · CONTROL PLANS</div>
+              <div className="text-xs tracking-wider text-zinc-500 mb-4">PRODUCT RISK EVALUATION & PREVENTION — AMERICA'S FMEA</div>
               <p className="text-zinc-400 flex-1">
-                Step-by-step intelligence that walks engineers and quality teams through failure modes, effects, severity/occurrence/detection scoring, and linked process controls. Produces clean professional PDF and spreadsheet deliverables ready for design reviews and audits.
+                The intuitive web-based FMEA configurator. Start free with our streamlined new format. Paid unlocks one-click exports to VDA, AIAG, PDF, and professional templates. Bird's-eye risk overview with industrial blue clarity. Built to be teachable and fast.
               </p>
               <Link
                 href="/fmea"
