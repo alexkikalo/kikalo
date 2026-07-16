@@ -16,10 +16,10 @@ const ONSHAPE_RANGES = {
  * GET /api/onshape/geometry?width=xx&depth=yy&height=zz
  *   [&hdmi=true&hdmiX=0.5&hdmiY=0.2]  (inches)
  *
- * Parameter IDs:
+ * Parameter IDs (confirmed):
  *   Width, Depth, Height (LENGTH / inch)
  *   Front-HDMI-01-X, Front-HDMI-01-Y (LENGTH / inch)
- *   Front-HDMI-01 (boolean)
+ *   Front-HDMI-01 (boolean checkbox)
  * Tessellation is returned in meters.
  */
 export async function GET(request: Request) {
@@ -66,24 +66,38 @@ export async function GET(request: Request) {
     Accept: 'application/json;charset=UTF-8; qs=0.09',
   }
 
-  // Build the HDMI portion of the configuration string
-  // Boolean: Front-HDMI-01=true / false
-  // Lengths: Front-HDMI-01-X=0.500+inch; Front-HDMI-01-Y=0.200+inch
-  const hdmiPart = hdmiEnabled
-    ? `Front-HDMI-01=true;Front-HDMI-01-X=${hdmiX.toFixed(3)}+inch;Front-HDMI-01-Y=${hdmiY.toFixed(3)}+inch`
-    : `Front-HDMI-01=false`
+  // Multiple candidate formats for the HDMI portion.
+  // Onshape can be picky about boolean spelling and length unit syntax.
+  const x = hdmiX.toFixed(3)
+  const y = hdmiY.toFixed(3)
+  const boolVal = hdmiEnabled ? 'true' : 'false'
 
-  // Confirmed working formats for quantity config variables (LENGTH / inch).
-  // Preferred URL form is parameterId=value+unit
+  const hdmiParts = [
+    // Most common working form
+    `Front-HDMI-01=${boolVal};Front-HDMI-01-X=${x}+inch;Front-HDMI-01-Y=${y}+inch`,
+    // Alternate unit
+    `Front-HDMI-01=${boolVal};Front-HDMI-01-X=${x}+in;Front-HDMI-01-Y=${y}+in`,
+    // Space before unit
+    `Front-HDMI-01=${boolVal};Front-HDMI-01-X=${x} inch;Front-HDMI-01-Y=${y} inch`,
+    // No unit (rely on default unit of the config variable)
+    `Front-HDMI-01=${boolVal};Front-HDMI-01-X=${x};Front-HDMI-01-Y=${y}`,
+    // Capitalized boolean (some older examples used this)
+    `Front-HDMI-01=${hdmiEnabled ? 'True' : 'False'};Front-HDMI-01-X=${x}+inch;Front-HDMI-01-Y=${y}+inch`,
+  ]
+
+  // Base dimension formats that already work for Width/Depth/Height
   const baseConfigs = [
     `Width=${width.toFixed(3)}+inch;Depth=${depth.toFixed(3)}+inch;Height=${height.toFixed(3)}+inch`,
     `Width=${width.toFixed(3)}+in;Depth=${depth.toFixed(3)}+in;Height=${height.toFixed(3)}+in`,
-    `Width=${width.toFixed(3)} in;Depth=${depth.toFixed(3)} in;Height=${height.toFixed(3)} in`,
-    `Width=${width.toFixed(3)};Depth=${depth.toFixed(3)};Height=${height.toFixed(3)}`,
   ]
 
-  // Append HDMI parameters to every candidate
-  const configCandidates = baseConfigs.map((base) => `${base};${hdmiPart}`)
+  // Cross product of base + HDMI variants
+  const configCandidates: string[] = []
+  for (const base of baseConfigs) {
+    for (const hdmi of hdmiParts) {
+      configCandidates.push(`${base};${hdmi}`)
+    }
+  }
 
   const baseUrl = `https://cad.onshape.com/api/v6/partstudios/d/${DID}/w/${WID}/e/${EID}/tessellatedfaces`
   const attempts: any[] = []
@@ -109,7 +123,7 @@ export async function GET(request: Request) {
         attempts.push({
           configString,
           status: response.status,
-          body: responseText.slice(0, 400),
+          body: responseText.slice(0, 500),
         })
         continue
       }
@@ -134,7 +148,7 @@ export async function GET(request: Request) {
         clamped: original.width !== width || original.depth !== depth || original.height !== height,
         configString,
         facesCount: faces,
-        units: 'meters', // Onshape tessellation is always in meters
+        units: 'meters',
         raw: data,
       })
     } catch (error) {
@@ -145,7 +159,37 @@ export async function GET(request: Request) {
     }
   }
 
-  // Last resort: default configuration (no params) so we still get *some* geometry
+  // Last resort: try WITHOUT any HDMI parameters (so at least size still works)
+  for (const base of baseConfigs) {
+    try {
+      const url = `${baseUrl}?configuration=${encodeURIComponent(base)}`
+      const response = await fetch(url, { method: 'GET', headers: authHeaders })
+      if (response.ok) {
+        const data = await response.json()
+        const faces = data?.bodies?.[0]?.faces?.length || 0
+        if (faces > 0) {
+          return NextResponse.json({
+            success: true,
+            message: 'Geometry fetched (HDMI params rejected — size only)',
+            dimensionsIn: { width, depth, height },
+            hdmi: { enabled: hdmiEnabled, x: hdmiX, y: hdmiY },
+            originalRequested: original,
+            clamped: true,
+            configString: base,
+            facesCount: faces,
+            units: 'meters',
+            warning: 'HDMI configuration parameters were rejected by Onshape. Showing size-only geometry.',
+            attempts,
+            raw: data,
+          })
+        }
+      }
+    } catch {
+      /* continue */
+    }
+  }
+
+  // Absolute last resort: completely default configuration
   try {
     const response = await fetch(baseUrl, { method: 'GET', headers: authHeaders })
     if (response.ok) {
@@ -154,7 +198,7 @@ export async function GET(request: Request) {
       if (faces > 0) {
         return NextResponse.json({
           success: true,
-          message: 'Geometry fetched (default config — custom values were rejected)',
+          message: 'Geometry fetched (default config — all custom values rejected)',
           dimensionsIn: { width, depth, height },
           hdmi: { enabled: hdmiEnabled, x: hdmiX, y: hdmiY },
           originalRequested: original,
@@ -177,7 +221,7 @@ export async function GET(request: Request) {
   return NextResponse.json(
     {
       error: 'Failed to fetch geometry from Onshape',
-      hint: 'All configuration string formats failed. See attempts.',
+      hint: 'All configuration string formats failed. See attempts for the exact strings that were tried.',
       requested: original,
       clampedTo: { width, depth, height },
       onshapeRanges: ONSHAPE_RANGES,
