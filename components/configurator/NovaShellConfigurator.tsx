@@ -57,7 +57,7 @@ export function NovaShellConfigurator() {
   const [modalMode, setModalMode] = useState<'purchase' | 'quote'>('purchase')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Front face ports (local state for now — will drive Onshape when ports are modeled)
+  // Front face ports — first HDMI port drives Onshape Front-HDMI-01
   const [ports, setPorts] = useState<Port[]>([])
 
   // Live Onshape geometry state
@@ -87,7 +87,7 @@ export function NovaShellConfigurator() {
 
   const activeVariant = mode === 'custom' ? customVariant : selectedVariant
 
-  const fetchOnshapeGeometry = useCallback(async (dims: typeof DEFAULT_CUSTOM_DIMS) => {
+  const fetchOnshapeGeometry = useCallback(async (dims: typeof DEFAULT_CUSTOM_DIMS, currentPorts: Port[]) => {
     if (abortRef.current) abortRef.current.abort()
     const controller = new AbortController()
     abortRef.current = controller
@@ -101,6 +101,16 @@ export function NovaShellConfigurator() {
         depth: dims.depth.toFixed(3),
         height: dims.height.toFixed(3),
       })
+
+      // Map first HDMI port to Onshape Front-HDMI-01 parameters
+      const hdmiPort = currentPorts.find((p) => p.type === 'hdmi')
+      if (hdmiPort) {
+        params.set('hdmi', 'true')
+        params.set('hdmiX', hdmiPort.x.toFixed(3))
+        params.set('hdmiY', hdmiPort.y.toFixed(3))
+      } else {
+        params.set('hdmi', 'false')
+      }
 
       const res = await fetch(`/api/onshape/geometry?${params.toString()}`, {
         signal: controller.signal,
@@ -132,25 +142,25 @@ export function NovaShellConfigurator() {
     }
   }, [])
 
-  // Debounced fetch on dimension / mode change
+  // Debounced fetch on dimension / ports / mode change
   useEffect(() => {
     if (mode !== 'custom' || !useLiveOnshape) return
 
     if (debounceRef.current) clearTimeout(debounceRef.current)
 
     debounceRef.current = setTimeout(() => {
-      fetchOnshapeGeometry(customDimensions)
+      fetchOnshapeGeometry(customDimensions, ports)
     }, DEBOUNCE_MS)
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [customDimensions, mode, useLiveOnshape, fetchOnshapeGeometry])
+  }, [customDimensions, ports, mode, useLiveOnshape, fetchOnshapeGeometry])
 
   // Initial fetch when entering custom
   useEffect(() => {
     if (mode === 'custom' && useLiveOnshape && !onshapeData && !onshapeLoading) {
-      fetchOnshapeGeometry(customDimensions)
+      fetchOnshapeGeometry(customDimensions, ports)
     }
   }, [mode]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -430,7 +440,7 @@ END-ISO-10303-21;`
                         <button
                           onClick={() => {
                             setUseLiveOnshape(true)
-                            fetchOnshapeGeometry(customDimensions)
+                            fetchOnshapeGeometry(customDimensions, ports)
                           }}
                           className="text-[10px] text-emerald-500 hover:text-emerald-400 underline underline-offset-2"
                         >
@@ -496,7 +506,7 @@ END-ISO-10303-21;`
                       <div>
                         <div className="text-sm font-medium tracking-widest text-zinc-400">FRONT PORTS</div>
                         <div className="text-xs text-zinc-500">
-                          Configure connectors on the front face. Live 3D update coming once ports are modeled.
+                          First HDMI port is live in Onshape (Front-HDMI-01). Other ports coming soon.
                         </div>
                       </div>
                       <button
@@ -512,17 +522,22 @@ END-ISO-10303-21;`
                       <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/40 px-4 py-8 text-center">
                         <div className="text-sm text-zinc-500">No ports yet</div>
                         <div className="mt-1 text-[11px] text-zinc-600">
-                          Click “Add Port” to place USB-C, HDMI, Ethernet, etc.
+                          Click “Add Port” and set type to HDMI to see the live cutout.
                         </div>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {ports.map((port, index) => {
                           const typeLabel = PORT_TYPES.find(t => t.id === port.type)?.label || port.type
+                          const isLiveHdmi = port.type === 'hdmi' && ports.findIndex(p => p.type === 'hdmi') === index
                           return (
                             <div
                               key={port.id}
-                              className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4"
+                              className={`rounded-2xl border p-4 ${
+                                isLiveHdmi
+                                  ? 'border-emerald-500/40 bg-emerald-500/5'
+                                  : 'border-zinc-800 bg-zinc-900/60'
+                              }`}
                             >
                               <div className="mb-3 flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-2">
@@ -540,6 +555,11 @@ END-ISO-10303-21;`
                                       </option>
                                     ))}
                                   </select>
+                                  {isLiveHdmi && (
+                                    <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-medium text-emerald-400">
+                                      LIVE
+                                    </span>
+                                  )}
                                 </div>
                                 <button
                                   onClick={() => removePort(port.id)}
@@ -616,6 +636,7 @@ END-ISO-10303-21;`
 
                               <div className="mt-3 border-t border-zinc-800 pt-2 text-[10px] text-zinc-600">
                                 {typeLabel} · X {port.x.toFixed(2)} in · Y {port.y.toFixed(2)} in · {port.rotation}°
+                                {isLiveHdmi && ' · driving Front-HDMI-01'}
                               </div>
                             </div>
                           )
@@ -625,7 +646,7 @@ END-ISO-10303-21;`
 
                     {ports.length > 0 && (
                       <div className="mt-4 text-[10px] text-zinc-500">
-                        Positions are relative to center of front face. Live cutouts will appear in the 3D preview once the port library is added to Onshape.
+                        Positions are relative to center of front face. The first HDMI port updates the live Onshape cutout (Front-HDMI-01).
                       </div>
                     )}
                   </div>
@@ -675,6 +696,9 @@ END-ISO-10303-21;`
                         <div key={p.id} className="flex justify-between gap-2">
                           <span>
                             {i + 1}. {PORT_TYPES.find(t => t.id === p.type)?.label || p.type}
+                            {p.type === 'hdmi' && ports.findIndex(x => x.type === 'hdmi') === i && (
+                              <span className="ml-1.5 text-[9px] text-emerald-400">LIVE</span>
+                            )}
                           </span>
                           <span className="font-mono text-[11px] text-zinc-500">
                             {p.rotation}° · ({p.x >= 0 ? '+' : ''}{p.x.toFixed(1)}, {p.y >= 0 ? '+' : ''}{p.y.toFixed(1)})
