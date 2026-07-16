@@ -281,22 +281,22 @@ END-ISO-10303-21;`
 
   return (
     <div className="w-full">
-      <div className="mx-auto max-w-5xl px-6 pb-8 pt-12 text-center md:pt-16">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs tracking-[2px] text-zinc-400">
-          MADE IN TEXAS • PREMIUM CUSTOM ALUMINUM
-        </div>
-        <h1 className="mt-6 text-balance text-6xl font-semibold tracking-tighter text-white md:text-7xl">NovaShell</h1>
-        <p className="mx-auto mt-4 max-w-md text-xl text-zinc-400">
-          Precision custom aluminum enclosures for makers, engineers, and OEMs.<br />
-          Built to last. Ready to ship.
-        </p>
-      </div>
-
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4 lg:gap-10">
-          {/* Fixed-size preview frame */}
+          {/* Immersive taller preview with minimal overlayed title */}
           <div id="novashell-viewer" className="lg:col-span-2">
-            <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl h-[380px] sm:h-[440px] md:h-[480px] lg:h-[520px]">
+            <div className="relative w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl min-h-[550px] sm:min-h-[600px] md:min-h-[650px] lg:min-h-[calc(100vh-10rem)]">
+              {/* Minimal overlay title on preview for immersive feel */}
+              <div className="absolute inset-x-0 top-0 z-10 p-6">
+                <div className="mx-auto max-w-5xl">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-4 py-1 text-xs tracking-[2px] text-white/90 backdrop-blur-sm">
+                    MADE IN TEXAS • PREMIUM CUSTOM ALUMINUM
+                  </div>
+                  <h1 className="mt-4 text-balance text-5xl font-semibold tracking-tighter text-white drop-shadow-md md:text-6xl">NovaShell</h1>
+                  <p className="mt-2 max-w-md text-lg text-white/90">Precision custom aluminum enclosures for makers, engineers, and OEMs.<br />Built to last. Ready to ship.</p>
+                </div>
+              </div>
+
               {mode === 'custom' ? renderCustomPreview() : (
                 <ThreeDViewer variant={activeVariant} className="h-full w-full" />
               )}
@@ -341,9 +341,9 @@ END-ISO-10303-21;`
             )}
           </div>
 
-          {/* Controls Column */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-6 space-y-6">
+          {/* Controls Column - scrolls if content exceeds viewport height */}
+          <div className="lg:col-span-1 h-full">
+            <div className="sticky top-6 max-h-[calc(100vh-8rem)] overflow-y-auto space-y-6 pr-1">
               {/* Mode Toggle */}
               <div className="flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1">
                 <button
@@ -629,9 +629,9 @@ END-ISO-10303-21;`
             </div>
           </div>
 
-          {/* Checkout Column: Live price and purchase */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-6">
+          {/* Checkout Column - wraps container height */}
+          <div className="lg:col-span-1 h-full">
+            <div className="sticky top-6 h-full">
               {/* Selected / Summary Card */}
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
                 <div className="mb-4">
