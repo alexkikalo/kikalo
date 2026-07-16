@@ -72,12 +72,12 @@ export function SiteNav() {
                   className="block px-4 py-3 text-sm text-white hover:bg-white/5 transition border-t border-white/5"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">Smart FMEA</span>
-                    <span className="rounded-full border border-white/20 bg-white/5 px-1.5 py-0.5 text-[10px] tracking-wider text-zinc-400">
+                    <span className="font-medium">PREP</span>
+                    <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] tracking-wider text-blue-400">
                       SOON
                     </span>
                   </div>
-                  <div className="text-xs text-zinc-500 mt-0.5">Guided DFMEA / PFMEA / Control Plans</div>
+                  <div className="text-xs text-zinc-500 mt-0.5">America's FMEA • Guided Configurator</div>
                 </Link>
               </div>
             )}
@@ -129,12 +129,12 @@ export function SiteNav() {
                 className="block py-2.5 text-white font-medium"
               >
                 <span className="flex items-center gap-2">
-                  Smart FMEA
-                  <span className="rounded-full border border-white/20 bg-white/5 px-1.5 py-0.5 text-[10px] tracking-wider text-zinc-400">
+                  PREP
+                  <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] tracking-wider text-blue-400">
                     SOON
                   </span>
                 </span>
-                <span className="block text-xs text-zinc-500 font-normal mt-0.5">Guided DFMEA / PFMEA / Control Plans</span>
+                <span className="block text-xs text-zinc-500 font-normal mt-0.5">America's FMEA • Product Risk Evaluation & Prevention</span>
               </Link>
             </div>
           </div>
