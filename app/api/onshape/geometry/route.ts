@@ -4,12 +4,18 @@ const DID = 'c0783d484462993857a94bb1'
 const WID = 'd4a9f4803f10a4f65f2f8cf3'
 const EID = '7b6ee8c5ab24994b708ff864'
 
+// Ranges defined in the Onshape Part Studio configuration variables
+const ONSHAPE_RANGES = {
+  width:  { min: 2, max: 6 },
+  depth:  { min: 2, max: 3 },
+  height: { min: 2, max: 6 },
+}
+
 /**
  * Fetch tessellated geometry from Onshape using live configuration variables.
  * GET /api/onshape/geometry?width=xx&depth=yy&height=zz
  *
- * Automatically discovers the real parameterIds for Width/Depth/Height
- * from the Part Studio configuration definition.
+ * Parameter IDs are confirmed: Width, Depth, Height (quantity / LENGTH / inch)
  */
 export async function GET(request: Request) {
   const accessKey = process.env.ONSHAPE_NOVASHELL_ACCESS_KEY
@@ -26,13 +32,20 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
-  const width = parseFloat(searchParams.get('width') || '4.72')
-  const depth = parseFloat(searchParams.get('depth') || '3.74')
-  const height = parseFloat(searchParams.get('height') || '1.77')
+  let width = parseFloat(searchParams.get('width') || '4.72')
+  let depth = parseFloat(searchParams.get('depth') || '3.74')
+  let height = parseFloat(searchParams.get('height') || '1.77')
 
   if ([width, depth, height].some((v) => isNaN(v) || v <= 0)) {
     return NextResponse.json({ error: 'Invalid dimensions' }, { status: 400 })
   }
+
+  // Clamp to the ranges defined in the Onshape configuration variables
+  // (sending values outside min/max often causes the tessellation to fail)
+  const original = { width, depth, height }
+  width = Math.min(ONSHAPE_RANGES.width.max, Math.max(ONSHAPE_RANGES.width.min, width))
+  depth = Math.min(ONSHAPE_RANGES.depth.max, Math.max(ONSHAPE_RANGES.depth.min, depth))
+  height = Math.min(ONSHAPE_RANGES.height.max, Math.max(ONSHAPE_RANGES.height.min, height))
 
   const credentials = Buffer.from(`${accessKey}:${secretKey}`).toString('base64')
   const authHeaders = {
@@ -40,74 +53,20 @@ export async function GET(request: Request) {
     Accept: 'application/json;charset=UTF-8; qs=0.09',
   }
 
-  // 1. Discover real configuration parameters
-  let configParams: any[] = []
-  try {
-    const confRes = await fetch(
-      `https://cad.onshape.com/api/v6/elements/d/${DID}/w/${WID}/e/${EID}/configuration`,
-      { headers: authHeaders }
-    )
-    if (confRes.ok) {
-      const confData = await confRes.json()
-      configParams = confData.configurationParameters || []
-    }
-  } catch (e) {
-    console.warn('Could not fetch configuration definition', e)
-  }
-
-  // Helper to find a parameter by friendly name (case-insensitive)
-  const findParam = (names: string[]) => {
-    for (const name of names) {
-      const p = configParams.find(
-        (c: any) =>
-          (c.parameterName || '').toLowerCase() === name.toLowerCase() ||
-          (c.parameterId || '').toLowerCase() === name.toLowerCase()
-      )
-      if (p) return p
-    }
-    return null
-  }
-
-  const widthParam = findParam(['Width', 'width', 'W', 'Overall Width', 'Overall_Width'])
-  const depthParam = findParam(['Depth', 'depth', 'D', 'Overall Depth', 'Overall_Depth', 'Length'])
-  const heightParam = findParam(['Height', 'height', 'H', 'Overall Height', 'Overall_Height'])
-
-  // Build candidate configuration strings
-  const configCandidates: string[] = []
-
-  // A) Using discovered parameterIds + proper units (best)
-  if (widthParam && depthParam && heightParam) {
-    const wId = widthParam.parameterId
-    const dId = depthParam.parameterId
-    const hId = heightParam.parameterId
-
-    // Prefer the unit declared on the quantity parameter
-    const unit =
-      widthParam.rangeAndDefault?.units ||
-      widthParam.message?.rangeAndDefault?.message?.units ||
-      'in'
-
-    configCandidates.push(
-      `${wId}=${width.toFixed(3)}+${unit};${dId}=${depth.toFixed(3)}+${unit};${hId}=${height.toFixed(3)}+${unit}`
-    )
-    configCandidates.push(
-      `${wId}=${width.toFixed(3)};${dId}=${depth.toFixed(3)};${hId}=${height.toFixed(3)}`
-    )
-  }
-
-  // B) Friendly names (what you confirmed)
-  configCandidates.push(
-    `Width=${width.toFixed(3)}+in;Depth=${depth.toFixed(3)}+in;Height=${height.toFixed(3)}+in`
-  )
-  configCandidates.push(
-    `Width=${width.toFixed(3)}+inch;Depth=${depth.toFixed(3)}+inch;Height=${height.toFixed(3)}+inch`
-  )
-  configCandidates.push(
-    `Width=${width.toFixed(3)};Depth=${depth.toFixed(3)};Height=${height.toFixed(3)}`
-  )
-
-  // C) No configuration at all (returns default size – useful as last resort / connectivity check)
-  configCandidates.push('')
+  // Confirmed working formats for quantity configuration variables (LENGTH / inch).
+  // The currentConfiguration in Onshape uses expression style "2 in".
+  // Onshape accepts both "+inch" and "+in" in the configuration query string.
+  const configCandidates = [
+    // Most common / recommended
+    `Width=${width.toFixed(3)}+inch;Depth=${depth.toFixed(3)}+inch;Height=${height.toFixed(3)}+inch`,
+    `Width=${width.toFixed(3)}+in;Depth=${depth.toFixed(3)}+in;Height=${height.toFixed(3)}+in`,
+    // Expression style (matches what Onshape shows internally)
+    `Width=${width.toFixed(3)} in;Depth=${depth.toFixed(3)} in;Height=${height.toFixed(3)} in`,
+    // Bare numbers (sometimes works when units are implied)
+    `Width=${width.toFixed(3)};Depth=${depth.toFixed(3)};Height=${height.toFixed(3)}`,
+    // Default (no configuration) — useful connectivity check
+    '',
+  ]
 
   const baseUrl = `https://cad.onshape.com/api/v6/partstudios/d/${DID}/w/${WID}/e/${EID}/tessellatedfaces`
   const attempts: any[] = []
@@ -135,7 +94,7 @@ export async function GET(request: Request) {
         attempts.push({
           configString: configString || '(none)',
           status: response.status,
-          body: responseText.slice(0, 400),
+          body: responseText.slice(0, 500),
         })
         continue
       }
@@ -155,13 +114,10 @@ export async function GET(request: Request) {
         success: true,
         message: 'Geometry fetched',
         dimensionsIn: { width, depth, height },
+        originalRequested: original,
+        clamped: original.width !== width || original.depth !== depth || original.height !== height,
         configString: configString || '(default)',
         facesCount: faces,
-        discoveredParams: configParams.map((p: any) => ({
-          parameterId: p.parameterId,
-          parameterName: p.parameterName,
-          type: p.btType || p.typeName,
-        })),
         raw: data,
       })
     } catch (error) {
@@ -177,13 +133,10 @@ export async function GET(request: Request) {
   return NextResponse.json(
     {
       error: 'Failed to fetch geometry from Onshape',
-      hint: 'All configuration formats failed. Check the discoveredParams and attempts below.',
-      discoveredParams: configParams.map((p: any) => ({
-        parameterId: p.parameterId,
-        parameterName: p.parameterName,
-        type: p.btType || p.typeName,
-        units: p.rangeAndDefault?.units || p.message?.rangeAndDefault?.message?.units,
-      })),
+      hint: 'All configuration string formats failed. See attempts for details.',
+      requested: original,
+      clampedTo: { width, depth, height },
+      onshapeRanges: ONSHAPE_RANGES,
       attempts,
       document: { did: DID, wid: WID, eid: EID },
     },
