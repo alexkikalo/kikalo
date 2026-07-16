@@ -293,9 +293,9 @@ END-ISO-10303-21;`
           </div>
         </div>
 
-        {/* Equal height columns - all three match checkout height via stretch + caps */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr,1fr,1fr] lg:gap-10 items-stretch">
-          {/* Preview column - height matches checkout via stretch */}
+        {/* Equal height columns - adjusted fr to reduce preview width, give controls more space */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.5fr,1.25fr,1.25fr] lg:gap-10 items-stretch">
+          {/* Preview column */}
           <div className="lg:col-span-1 h-full">
             <div className="relative h-full w-full overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-2xl max-h-[520px]">
               {mode === 'custom' ? renderCustomPreview() : (
@@ -342,7 +342,7 @@ END-ISO-10303-21;`
             )}
           </div>
 
-          {/* Controls column - height matches checkout via stretch + cap */}
+          {/* Controls column */}
           <div className="lg:col-span-1 h-full">
             <div className="sticky top-6 h-full max-h-[520px] overflow-y-auto space-y-6 pr-1">
               {/* Mode Toggle */}
@@ -630,7 +630,7 @@ END-ISO-10303-21;`
             </div>
           </div>
 
-          {/* Checkout column - reference height for the other two */}
+          {/* Checkout column */}
           <div className="lg:col-span-1 h-full">
             <div className="sticky top-6 h-full">
               <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
@@ -640,7 +640,7 @@ END-ISO-10303-21;`
                 </div>
                 <div className="mb-6 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                   <div>
-                    <div className="text-[10px] text-zinc-500">EXTERNAL</div>
+                    <div className="text-[10px] text-zinc-500 whitespace-nowrap">EXTERNAL</div>
                     <div className="font-mono text-white">
                       {mode === 'custom'
                         ? `${activeVariant.dimensions.width.toFixed(2)} × ${activeVariant.dimensions.depth.toFixed(2)} × ${activeVariant.dimensions.height.toFixed(2)} in`
@@ -648,15 +648,15 @@ END-ISO-10303-21;`
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-zinc-500">MATERIAL / FINISH</div>
+                    <div className="text-[10px] text-zinc-500 whitespace-nowrap">MATERIAL / FINISH</div>
                     <div className="text-white">{activeVariant.material}<br />{activeVariant.finish}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-zinc-500">EST. WEIGHT</div>
+                    <div className="text-[10px] text-zinc-500 whitespace-nowrap">EST. WEIGHT</div>
                     <div className="text-white">{activeVariant.estWeight}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-zinc-500">LEAD TIME</div>
+                    <div className="text-[10px] text-zinc-500 whitespace-nowrap">LEAD TIME</div>
                     <div className="font-medium text-emerald-400">{activeVariant.leadTime}</div>
                   </div>
                 </div>
