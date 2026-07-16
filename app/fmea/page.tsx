@@ -69,14 +69,14 @@ export default function FMEAComingSoonPage() {
             </Link>
           </div>
 
-          <p className="mt-10 text-xs text-zinc-600">
-            Part of the Kikalo platform — tools for builders who ship real hardware.
-          </p>
+          {/*<p className="mt-10 text-xs text-zinc-600">
+            Part of the Kikalo platform — tools for builders.
+          </p>*/}
         </div>
       </section>
 
       <footer className="border-t border-white/10 py-10 text-center text-xs text-zinc-500">
-        © {new Date().getFullYear()} Kikalo • North Texas • Precision American Manufacturing
+        © {new Date().getFullYear()} Kikalo
       </footer>
     </main>
   )
