@@ -4,7 +4,7 @@ const DID = 'c0783d484462993857a94bb1'
 const WID = 'd4a9f4803f10a4f65f2f8cf3'
 const EID = '7b6ee8c5ab24994b708ff864'
 
-// Exact ranges from the Onshape configuration variables (updated 2026-07-16)
+// Exact ranges from the Onshape configuration variables
 const ONSHAPE_RANGES = {
   width:  { min: 2, max: 10 },
   depth:  { min: 2, max: 10 },
@@ -14,13 +14,13 @@ const ONSHAPE_RANGES = {
 /**
  * Fetch tessellated geometry from Onshape using live configuration variables.
  * GET /api/onshape/geometry?width=xx&depth=yy&height=zz
- *   [&hdmi=true&hdmiX=0.5&hdmiY=0.2]  (inches)
+ *   [&hdmi=true&hdmiX=0.5&hdmiY=0.2]
+ *   [&usbc=true&usbcX=0.5&usbcY=0.2]
  *
  * Parameter IDs (from /api/onshape/configuration):
  *   Width, Depth, Height
- *   Front_HDMI_01_X, Front_HDMI_01_Y  (LENGTH / inch)
- *   Front_HDMI_01                     (boolean)
- * Tessellation is returned in meters.
+ *   Front_HDMI_01_X, Front_HDMI_01_Y, Front_HDMI_01
+ *   Front_USBC_01_X, Front_USBC_01_Y, Front_USBC_01
  */
 export async function GET(request: Request) {
   const accessKey = process.env.ONSHAPE_NOVASHELL_ACCESS_KEY
@@ -41,10 +41,15 @@ export async function GET(request: Request) {
   let depth = parseFloat(searchParams.get('depth') || '3.74')
   let height = parseFloat(searchParams.get('height') || '2.0')
 
-  // Optional HDMI cutout parameters (Front_HDMI_01*)
+  // HDMI
   const hdmiEnabled = searchParams.get('hdmi') === 'true'
   let hdmiX = parseFloat(searchParams.get('hdmiX') || '0')
   let hdmiY = parseFloat(searchParams.get('hdmiY') || '0')
+
+  // USB-C
+  const usbcEnabled = searchParams.get('usbc') === 'true'
+  let usbcX = parseFloat(searchParams.get('usbcX') || '0')
+  let usbcY = parseFloat(searchParams.get('usbcY') || '0')
 
   if ([width, depth, height].some((v) => isNaN(v) || v <= 0)) {
     return NextResponse.json({ error: 'Invalid dimensions' }, { status: 400 })
@@ -52,10 +57,16 @@ export async function GET(request: Request) {
 
   if (isNaN(hdmiX)) hdmiX = 0
   if (isNaN(hdmiY)) hdmiY = 0
+  if (isNaN(usbcX)) usbcX = 0
+  if (isNaN(usbcY)) usbcY = 0
 
-  const original = { width, depth, height, hdmiEnabled, hdmiX, hdmiY }
+  const original = {
+    width, depth, height,
+    hdmiEnabled, hdmiX, hdmiY,
+    usbcEnabled, usbcX, usbcY,
+  }
 
-  // Clamp overall dimensions to Onshape ranges
+  // Clamp overall dimensions
   width = Math.min(ONSHAPE_RANGES.width.max, Math.max(ONSHAPE_RANGES.width.min, width))
   depth = Math.min(ONSHAPE_RANGES.depth.max, Math.max(ONSHAPE_RANGES.depth.min, depth))
   height = Math.min(ONSHAPE_RANGES.height.max, Math.max(ONSHAPE_RANGES.height.min, height))
@@ -66,31 +77,30 @@ export async function GET(request: Request) {
     Accept: 'application/json;charset=UTF-8; qs=0.09',
   }
 
-  // Use the exact parameterIds returned by /api/onshape/configuration
-  const x = hdmiX.toFixed(3)
-  const y = hdmiY.toFixed(3)
-  const boolVal = hdmiEnabled ? 'true' : 'false'
+  // Build port configuration segments using exact parameterIds
+  const hx = hdmiX.toFixed(3)
+  const hy = hdmiY.toFixed(3)
+  const ux = usbcX.toFixed(3)
+  const uy = usbcY.toFixed(3)
 
-  const hdmiParts = [
-    // Primary form matching documented Onshape format
-    `Front_HDMI_01=${boolVal};Front_HDMI_01_X=${x}+inch;Front_HDMI_01_Y=${y}+inch`,
-    // Alternate unit spelling
-    `Front_HDMI_01=${boolVal};Front_HDMI_01_X=${x}+in;Front_HDMI_01_Y=${y}+in`,
-    // No unit (fallback)
-    `Front_HDMI_01=${boolVal};Front_HDMI_01_X=${x};Front_HDMI_01_Y=${y}`,
+  const portParts = [
+    // Full ports with +inch
+    `Front_HDMI_01=${hdmiEnabled};Front_HDMI_01_X=${hx}+inch;Front_HDMI_01_Y=${hy}+inch;Front_USBC_01=${usbcEnabled};Front_USBC_01_X=${ux}+inch;Front_USBC_01_Y=${uy}+inch`,
+    // Alternate unit
+    `Front_HDMI_01=${hdmiEnabled};Front_HDMI_01_X=${hx}+in;Front_HDMI_01_Y=${hy}+in;Front_USBC_01=${usbcEnabled};Front_USBC_01_X=${ux}+in;Front_USBC_01_Y=${uy}+in`,
+    // No unit fallback
+    `Front_HDMI_01=${hdmiEnabled};Front_HDMI_01_X=${hx};Front_HDMI_01_Y=${hy};Front_USBC_01=${usbcEnabled};Front_USBC_01_X=${ux};Front_USBC_01_Y=${uy}`,
   ]
 
-  // Base dimension formats that already work for Width/Depth/Height
   const baseConfigs = [
     `Width=${width.toFixed(3)}+inch;Depth=${depth.toFixed(3)}+inch;Height=${height.toFixed(3)}+inch`,
     `Width=${width.toFixed(3)}+in;Depth=${depth.toFixed(3)}+in;Height=${height.toFixed(3)}+in`,
   ]
 
-  // Cross product of base + HDMI variants
   const configCandidates: string[] = []
   for (const base of baseConfigs) {
-    for (const hdmi of hdmiParts) {
-      configCandidates.push(`${base};${hdmi}`)
+    for (const ports of portParts) {
+      configCandidates.push(`${base};${ports}`)
     }
   }
 
@@ -139,6 +149,7 @@ export async function GET(request: Request) {
         message: 'Geometry fetched',
         dimensionsIn: { width, depth, height },
         hdmi: { enabled: hdmiEnabled, x: hdmiX, y: hdmiY },
+        usbc: { enabled: usbcEnabled, x: usbcX, y: usbcY },
         originalRequested: original,
         clamped: original.width !== width || original.depth !== depth || original.height !== height,
         configString,
@@ -154,7 +165,7 @@ export async function GET(request: Request) {
     }
   }
 
-  // Last resort: try WITHOUT any HDMI parameters (so at least size still works)
+  // Fallback: size only
   for (const base of baseConfigs) {
     try {
       const url = `${baseUrl}?configuration=${encodeURIComponent(base)}`
@@ -165,15 +176,16 @@ export async function GET(request: Request) {
         if (faces > 0) {
           return NextResponse.json({
             success: true,
-            message: 'Geometry fetched (HDMI params rejected — size only)',
+            message: 'Geometry fetched (port params rejected — size only)',
             dimensionsIn: { width, depth, height },
             hdmi: { enabled: hdmiEnabled, x: hdmiX, y: hdmiY },
+            usbc: { enabled: usbcEnabled, x: usbcX, y: usbcY },
             originalRequested: original,
             clamped: true,
             configString: base,
             facesCount: faces,
             units: 'meters',
-            warning: 'HDMI configuration parameters were rejected by Onshape. Showing size-only geometry.',
+            warning: 'Port configuration parameters were rejected by Onshape. Showing size-only geometry.',
             attempts,
             raw: data,
           })
@@ -184,7 +196,7 @@ export async function GET(request: Request) {
     }
   }
 
-  // Absolute last resort: completely default configuration
+  // Absolute last resort
   try {
     const response = await fetch(baseUrl, { method: 'GET', headers: authHeaders })
     if (response.ok) {
@@ -193,9 +205,10 @@ export async function GET(request: Request) {
       if (faces > 0) {
         return NextResponse.json({
           success: true,
-          message: 'Geometry fetched (default config — all custom values rejected)',
+          message: 'Geometry fetched (default config)',
           dimensionsIn: { width, depth, height },
           hdmi: { enabled: hdmiEnabled, x: hdmiX, y: hdmiY },
+          usbc: { enabled: usbcEnabled, x: usbcX, y: usbcY },
           originalRequested: original,
           clamped: true,
           configString: '(default)',
@@ -216,7 +229,7 @@ export async function GET(request: Request) {
   return NextResponse.json(
     {
       error: 'Failed to fetch geometry from Onshape',
-      hint: 'All configuration string formats failed. See attempts for the exact strings that were tried.',
+      hint: 'All configuration string formats failed. See attempts.',
       requested: original,
       clampedTo: { width, depth, height },
       onshapeRanges: ONSHAPE_RANGES,
