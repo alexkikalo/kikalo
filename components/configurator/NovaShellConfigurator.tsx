@@ -12,14 +12,13 @@ import { Download, ShoppingCart, Star, Plus, Trash2, RotateCw, ArrowUp, ArrowDow
 const DEFAULT_CUSTOM_DIMS = { width: 4.72, depth: 3.74, height: 2.0 }
 
 // UI ranges — kept in sync with Onshape configuration variables
-// Onshape now: all axes min 2 in / max 10 in
 const CUSTOM_RANGES = {
   width:  { min: 2.0, max: 10.0, step: 0.01 },
   depth:  { min: 2.0, max: 10.0, step: 0.01 },
   height: { min: 2.0, max: 10.0, step: 0.01 },
 }
 
-// Port position ranges (match Onshape Front_HDMI_01_X / Y limits)
+// Port position ranges (match Onshape Front_*_01_X / Y limits)
 const PORT_POS_RANGE = { min: -10, max: 10, step: 0.01 }
 
 const DEBOUNCE_MS = 450
@@ -60,7 +59,7 @@ export function NovaShellConfigurator() {
   const [modalMode, setModalMode] = useState<'purchase' | 'quote'>('purchase')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Front face ports — first HDMI port drives Onshape Front_HDMI_01
+  // Front face ports — first of each live type drives the matching Onshape cutout
   const [ports, setPorts] = useState<Port[]>([])
 
   // Live Onshape geometry state
@@ -105,7 +104,7 @@ export function NovaShellConfigurator() {
         height: dims.height.toFixed(3),
       })
 
-      // Map first HDMI port to Onshape Front_HDMI_01 parameters
+      // First HDMI → Front_HDMI_01
       const hdmiPort = currentPorts.find((p) => p.type === 'hdmi')
       if (hdmiPort) {
         params.set('hdmi', 'true')
@@ -113,6 +112,16 @@ export function NovaShellConfigurator() {
         params.set('hdmiY', hdmiPort.y.toFixed(3))
       } else {
         params.set('hdmi', 'false')
+      }
+
+      // First USB-C → Front_USBC_01
+      const usbcPort = currentPorts.find((p) => p.type === 'usb-c')
+      if (usbcPort) {
+        params.set('usbc', 'true')
+        params.set('usbcX', usbcPort.x.toFixed(3))
+        params.set('usbcY', usbcPort.y.toFixed(3))
+      } else {
+        params.set('usbc', 'false')
       }
 
       const res = await fetch(`/api/onshape/geometry?${params.toString()}`, {
@@ -137,7 +146,6 @@ export function NovaShellConfigurator() {
       if (err.name === 'AbortError') return
       console.warn('Onshape geometry fetch failed:', err)
       setOnshapeError(err.message || 'Failed to load live geometry')
-      // Keep any previous successful onshapeData so we don't blank the view
     } finally {
       if (!controller.signal.aborted) {
         setOnshapeLoading(false)
@@ -269,8 +277,6 @@ END-ISO-10303-21;`
     URL.revokeObjectURL(url)
   }
 
-  // Always keep a solid preview. Live Onshape is preferred only when we have good data.
-  // On any error or while first loading → show the fast GLTF so the UI never breaks.
   const renderCustomPreview = () => {
     const hasLive = useLiveOnshape && onshapeData && !onshapeError
 
@@ -285,7 +291,6 @@ END-ISO-10303-21;`
       )
     }
 
-    // Fast fallback (always works)
     return (
       <div className="relative h-full w-full">
         <StaticCaseViewer dimensions={customDimensions} className="h-full w-full" />
@@ -300,10 +305,23 @@ END-ISO-10303-21;`
     )
   }
 
+  // Helper: is this the first instance of a live port type?
+  const isLivePort = (port: Port, index: number) => {
+    if (port.type === 'hdmi') return ports.findIndex(p => p.type === 'hdmi') === index
+    if (port.type === 'usb-c') return ports.findIndex(p => p.type === 'usb-c') === index
+    return false
+  }
+
+  const liveLabel = (port: Port) => {
+    if (port.type === 'hdmi') return 'Front_HDMI_01'
+    if (port.type === 'usb-c') return 'Front_USBC_01'
+    return ''
+  }
+
   return (
     <div className="w-full">
       <div id="configurator" className="mx-auto max-w-7xl px-6 pb-8">
-        {/* Header - PREP style with mode toggle on the right */}
+        {/* Header */}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex items-center gap-4">
             <div className="rounded-2xl bg-zinc-800 p-3">
@@ -315,7 +333,6 @@ END-ISO-10303-21;`
             </div>
           </div>
 
-          {/* Preset / Custom Toggle - same structure and width behavior as PREP */}
           <div className="mt-4 lg:mt-0 flex rounded-2xl border border-zinc-800 bg-zinc-950 p-1 self-start lg:self-auto lg:w-[280px]">
             <button
               onClick={switchToPreset}
@@ -332,7 +349,6 @@ END-ISO-10303-21;`
           </div>
         </div>
 
-        {/* Equal height columns */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.5fr,1.25fr,1.25fr] lg:gap-10 items-stretch">
           {/* Preview column */}
           <div className="lg:col-span-1 h-full">
@@ -366,17 +382,10 @@ END-ISO-10303-21;`
               )}
             </div>
 
-            {/* Debug error */}
             {mode === 'custom' && useLiveOnshape && onshapeError && (
               <div className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-left text-[11px] text-amber-200/90">
                 <div className="font-medium text-amber-400 mb-1">Onshape live geometry unavailable</div>
                 <div className="text-zinc-400 break-words">{onshapeError}</div>
-                <div className="mt-2 text-zinc-500">
-                  The fast preview above is still live. Common fixes: check Vercel env vars
-                  <code className="mx-1 text-zinc-300">ONSHAPE_NOVASHELL_ACCESS_KEY</code> /
-                  <code className="mx-1 text-zinc-300">ONSHAPE_NOVASHELL_SECRET_KEY</code>,
-                  document share permissions, or exact config parameter names.
-                </div>
               </div>
             )}
           </div>
@@ -386,7 +395,6 @@ END-ISO-10303-21;`
             <div className="sticky top-6 h-full max-h-[520px] overflow-y-auto space-y-6 pr-1
               [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-700
               [&::-webkit-scrollbar-track]:bg-zinc-900">
-              {/* Preset Sizes */}
               {mode === 'preset' && (
                 <div>
                   <div className="mb-3 flex items-center justify-between px-1">
@@ -429,7 +437,6 @@ END-ISO-10303-21;`
                 </div>
               )}
 
-              {/* Custom Size Controls */}
               {mode === 'custom' && (
                 <>
                   <div className="rounded-3xl border border-zinc-800 bg-zinc-950 p-6">
@@ -517,7 +524,7 @@ END-ISO-10303-21;`
                       <div>
                         <div className="text-sm font-medium tracking-widest text-zinc-400">FRONT PORTS</div>
                         <div className="text-xs text-zinc-500">
-                          First HDMI port is live in Onshape (Front_HDMI_01). Other ports coming soon.
+                          First HDMI and first USB-C are live in Onshape.
                         </div>
                       </div>
                       <button
@@ -533,19 +540,19 @@ END-ISO-10303-21;`
                       <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/40 px-4 py-8 text-center">
                         <div className="text-sm text-zinc-500">No ports yet</div>
                         <div className="mt-1 text-[11px] text-zinc-600">
-                          Click “Add Port” and set type to HDMI to see the live cutout.
+                          Add an HDMI or USB-C port to see the live cutout.
                         </div>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {ports.map((port, index) => {
                           const typeLabel = PORT_TYPES.find(t => t.id === port.type)?.label || port.type
-                          const isLiveHdmi = port.type === 'hdmi' && ports.findIndex(p => p.type === 'hdmi') === index
+                          const live = isLivePort(port, index)
                           return (
                             <div
                               key={port.id}
                               className={`rounded-2xl border p-4 ${
-                                isLiveHdmi
+                                live
                                   ? 'border-emerald-500/40 bg-emerald-500/5'
                                   : 'border-zinc-800 bg-zinc-900/60'
                               }`}
@@ -566,7 +573,7 @@ END-ISO-10303-21;`
                                       </option>
                                     ))}
                                   </select>
-                                  {isLiveHdmi && (
+                                  {live && (
                                     <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-medium text-emerald-400">
                                       LIVE
                                     </span>
@@ -582,11 +589,9 @@ END-ISO-10303-21;`
                               </div>
 
                               <div className="grid grid-cols-2 gap-3">
-                                {/* Position */}
                                 <div>
                                   <div className="mb-1.5 text-[10px] tracking-wider text-zinc-500">POSITION</div>
                                   <div className="flex flex-col gap-2">
-                                    {/* X row */}
                                     <div className="flex items-center gap-1.5">
                                       <button
                                         onClick={() => movePort(port.id, -0.1, 0)}
@@ -613,7 +618,6 @@ END-ISO-10303-21;`
                                         className="w-16 rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-right font-mono text-xs text-white focus:border-white/60 focus:outline-none"
                                       />
                                     </div>
-                                    {/* Y row */}
                                     <div className="flex items-center gap-1.5">
                                       <button
                                         onClick={() => movePort(port.id, 0, 0.1)}
@@ -643,7 +647,6 @@ END-ISO-10303-21;`
                                   </div>
                                 </div>
 
-                                {/* Rotation */}
                                 <div>
                                   <div className="mb-1.5 text-[10px] tracking-wider text-zinc-500">ROTATION</div>
                                   <div className="flex items-center gap-2">
@@ -663,7 +666,7 @@ END-ISO-10303-21;`
 
                               <div className="mt-3 border-t border-zinc-800 pt-2 text-[10px] text-zinc-600">
                                 {typeLabel} · X {port.x.toFixed(2)} in · Y {port.y.toFixed(2)} in · {port.rotation}°
-                                {isLiveHdmi && ' · driving Front_HDMI_01'}
+                                {live && ` · driving ${liveLabel(port)}`}
                               </div>
                             </div>
                           )
@@ -673,7 +676,7 @@ END-ISO-10303-21;`
 
                     {ports.length > 0 && (
                       <div className="mt-4 text-[10px] text-zinc-500">
-                        Positions are relative to center of front face (−10 to +10 in). The first HDMI port updates the live Onshape cutout.
+                        Positions relative to center (−10 to +10 in). First HDMI and first USB-C update the live cutouts.
                       </div>
                     )}
                   </div>
@@ -723,7 +726,7 @@ END-ISO-10303-21;`
                         <div key={p.id} className="flex justify-between gap-2">
                           <span>
                             {i + 1}. {PORT_TYPES.find(t => t.id === p.type)?.label || p.type}
-                            {p.type === 'hdmi' && ports.findIndex(x => x.type === 'hdmi') === i && (
+                            {isLivePort(p, i) && (
                               <span className="ml-1.5 text-[9px] text-emerald-400">LIVE</span>
                             )}
                           </span>
